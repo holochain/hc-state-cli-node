@@ -5,11 +5,11 @@ const main = async () => {
     const argv = process.argv;
     let result, context = "";
 
+    console.log(`Connecting to holochain`);
     const adminWebsocket = await AdminWebsocket.connect(
         `ws://localhost:${ADMIN_PORT}`
     );
-
-    console.log(`Successfully connected to admin interface on port ${ADMIN_PORT}\n`);
+    console.log(`Successfully connected to admin interface on port ${ADMIN_PORT}`);
 
     if (argv[2] === '--list-dnas' || argv[2] === '-d') {
         context = `Installed DNAs:`;
