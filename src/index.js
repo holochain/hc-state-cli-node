@@ -1,18 +1,29 @@
-import { listDnas, listCellIds, listActiveAppIds } from "./utils"
+import { ADMIN_PORT } from "./config";
+import { AdminWebsocket } from "@holochain/conductor-api";
 
 const main = async () => {
     const argv = process.argv;
-    let result;
+    let result, context = "";
+
+    const adminWebsocket = await AdminWebsocket.connect(
+        `ws://localhost:${ADMIN_PORT}`
+    );
+
+    console.log(`Successfully connected to admin interface on port ${ADMIN_PORT}\n`);
 
     if (argv[2] === '--list-dnas' || argv[2] === '-d') {
-        result = await listDnas();
+        context = `Installed DNAs:`;
+        result = await adminWebsocket.listDnas();
+        result = result.map(dna => dna.toString('base64'));
     } else if (argv[2] === '--list-cell-ids' || argv[2] === '-c') {
-        result = await listCellIds();
+        context = `Installed CellIds:`;
+        result = await adminWebsocket.listCellIds();
+        result = result.map(cell_id => [cell_id[0].toString('base64'), cell_id[1].toString('base64')]);
     } else if (argv[2] === '--list-active-app-ids' || argv[2] === '-a') {
-        result = await listActiveAppIds();
+        context = `Active App Ids:`;
+        result = await adminWebsocket.listActiveAppIds();
     } else if (argv[2] === '--help' || argv[2] === '-h') {
         result = `
-        
 CLI tool for querying holochain over admin port (default = 4444)
     usage:
         node main.js --command
@@ -28,16 +39,14 @@ CLI tool for querying holochain over admin port (default = 4444)
                 DnaHashBase64: string, // base64 representation of Buffer length 39
                 AgentPubKeyBase64: string // base64 representation of Buffer length 39
             ]
-
 `;
     } else {
         result = `
-
 No known command specified, type --help for help
-
 `
     }
 
+    console.log(context);
     console.log(result);
 }
 
