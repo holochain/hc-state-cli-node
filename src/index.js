@@ -1,25 +1,33 @@
 import { ADMIN_PORT } from "./config";
 import { AdminWebsocket } from "@holochain/conductor-api";
 
-const main = async () => {
-    const argv = process.argv;
-    let result, context = "";
-
+const getAdminWebsocket = async () => {
     console.log(`Connecting to holochain`);
     const adminWebsocket = await AdminWebsocket.connect(
         `ws://localhost:${ADMIN_PORT}`
     );
     console.log(`Successfully connected to admin interface on port ${ADMIN_PORT}`);
+    return adminWebsocket;
+}
+
+const main = async () => {
+    const argv = process.argv;
+    let result, context = "";
 
     if (argv[2] === '--list-dnas' || argv[2] === '-d') {
+        const adminWebsocket = await getAdminWebsocket();
         context = `Installed DNAs:`;
         result = await adminWebsocket.listDnas();
-        result = result.map(dna => dna.toString('base64'));
+        if (Array.isArray(result)) 
+            result = result.map(dna => dna.toString('base64'));
     } else if (argv[2] === '--list-cell-ids' || argv[2] === '-c') {
+        const adminWebsocket = await getAdminWebsocket();
         context = `Installed CellIds:`;
         result = await adminWebsocket.listCellIds();
-        result = result.map(cell_id => [cell_id[0].toString('base64'), cell_id[1].toString('base64')]);
+        if (Array.isArray(result)) 
+            result = result.map(cell_id => [cell_id[0].toString('base64'), cell_id[1].toString('base64')]);
     } else if (argv[2] === '--list-active-app-ids' || argv[2] === '-a') {
+        const adminWebsocket = await getAdminWebsocket();
         context = `Active App Ids:`;
         result = await adminWebsocket.listActiveAppIds();
     } else if (argv[2] === '--help' || argv[2] === '-h') {
