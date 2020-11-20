@@ -1,0 +1,24 @@
+{
+  "name": "hc-state",
+  "version": "0.0.1",
+  "description": "CLI tool for querying holochain over admin port",
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holochain/hc-state-cli-node.git"
+  },
+  "author": "peeech",
+  "license": "MIT",
+  "dependencies": {
+    "@holochain/conductor-api": "0.0.1-dev.11"
+  },
+  "devDependencies": {
+    "webpack": "^4.44.2",
+    "webpack-cli": "^4.1.0",
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2"
+  }
+}
