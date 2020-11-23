@@ -3,26 +3,29 @@
 CLI tool for querying holochain over admin port
 ```
 usage:
-    node main.js --command
+        hc-state --command arg
+    
+        -a --list-active-app-ids (no arg) calls ListActiveAppIds(void) -> [AppId: string]
+        -c --list-cell-ids (no arg) calls ListCellIds(void) -> [CellId: CellIdBase64]
+        -d --list-dnas (no arg) calls ListDnas(void) -> [DnaHash: string]
+        -s --state-dump CellIdBase64 calls dumpState(CellIdBase64) -> [stateDump: any]
+        -h --help shows this help
+    
+    where 
+        CellIdBase64 = 
+            [
+                DnaHashBase64: string, // base64 representation of Buffer length 39
+                AgentPubKeyBase64: string // base64 representation of Buffer length 39
+            ]
 
-    -a --list-active-app-ids calls listActiveAppIds(void) -> [AppId: string]
-    -c --list-cell-ids calls listCellIds(void) -> [CellId: CellIdBase64]
-    -d --list-dnas calls listDnas(void) -> [DnaHash: string]
-    -h --help shows this help
-
-where 
-    CellIdBase64 = 
-        [
-            DnaHashBase64: string, // base64 representation of Buffer length 39
-            AgentPubKeyBase64: string // base64 representation of Buffer length 39
-        ]
+    example
+        hc-state -s "[
+            'hC0kqcfqvJ8krBR0bNnPsmLtFiEiMOHM0fX+U8FW+ROc7P10tUdc',
+            'hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac'
+        ]"
 ```
 
-useful in the future:
-```
-    -s --dump-state calls DumpState(cell_id: CellIdBase64) -> any
-```
-It would also be useful to have `appDetails(app_id)`, but currently holochain admin API does not expose this functionality
+It would be useful to have `appDetails(app_id)`, but currently holochain admin API does not expose this functionality
 
 #### Build
 ```sh
