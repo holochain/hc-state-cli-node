@@ -1,60 +1,53 @@
-import { ADMIN_PORT } from "./config";
-import { AdminWebsocket } from "@holochain/conductor-api";
-
-const getAdminWebsocket = async () => {
-    console.log(`Connecting to holochain`);
-    const adminWebsocket = await AdminWebsocket.connect(
-        `ws://localhost:${ADMIN_PORT}`
-    );
-    console.log(`Successfully connected to admin interface on port ${ADMIN_PORT}`);
-    return adminWebsocket;
-}
+import { listDnas, listCellIds, listActiveAppIds, dumpState } from "./utils";
 
 const main = async () => {
     const argv = process.argv;
-    let result, context = "";
+    let context, result;
 
     if (argv[2] === '--list-dnas' || argv[2] === '-d') {
-        const adminWebsocket = await getAdminWebsocket();
         context = `Installed DNAs:`;
-        result = await adminWebsocket.listDnas();
-        if (Array.isArray(result)) 
-            result = result.map(dna => dna.toString('base64'));
+        result = await listDnas();
     } else if (argv[2] === '--list-cell-ids' || argv[2] === '-c') {
-        const adminWebsocket = await getAdminWebsocket();
         context = `Installed CellIds:`;
-        result = await adminWebsocket.listCellIds();
-        if (Array.isArray(result)) 
-            result = result.map(cell_id => [cell_id[0].toString('base64'), cell_id[1].toString('base64')]);
+        result = await listCellIds();
     } else if (argv[2] === '--list-active-app-ids' || argv[2] === '-a') {
-        const adminWebsocket = await getAdminWebsocket();
         context = `Active App Ids:`;
-        result = await adminWebsocket.listActiveAppIds();
+        result = await listActiveAppIds();
+    } else if (argv[2] === '--state-dump' || argv[2] === '-s') {
+        context = `State dump:`;
+        result = await dumpState(argv[3]);
     } else if (argv[2] === '--help' || argv[2] === '-h') {
         result = `
-CLI tool for querying holochain over admin port (default = 4444)
-    usage:
-        node main.js --command
-    
-        -d --list-dnas calls ListDnas(void) -> [DnaHash: string]
-        -c --list-cell-ids calls ListCellIds(void) -> [CellId: CellIdBase64]
-        -a --list-active-app-ids calls ListActiveAppIds(void) -> [AppId: string]
-        -h --help shows this help
-    
-    where 
-        CellIdBase64 = 
-            [
-                DnaHashBase64: string, // base64 representation of Buffer length 39
-                AgentPubKeyBase64: string // base64 representation of Buffer length 39
-            ]
+    CLI tool for querying holochain over admin port (default = 4444)
+        usage:
+            hc-state --command arg
+        
+            -a --list-active-app-ids (no arg) calls ListActiveAppIds(void) -> [AppId: string]
+            -c --list-cell-ids (no arg) calls ListCellIds(void) -> [CellId: CellIdBase64]
+            -d --list-dnas (no arg) calls ListDnas(void) -> [DnaHash: string]
+            -s --state-dump CellIdBase64 calls dumpState(CellIdBase64) -> [stateDump: any]
+            -h --help shows this help
+        
+        where 
+            CellIdBase64 = 
+                [
+                    DnaHashBase64: string, // base64 representation of Buffer length 39
+                    AgentPubKeyBase64: string // base64 representation of Buffer length 39
+                ]
+
+        example
+            hc-state -s "[
+                'hC0kqcfqvJ8krBR0bNnPsmLtFiEiMOHM0fX+U8FW+ROc7P10tUdc',
+                'hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac'
+            ]"
 `;
     } else {
         result = `
-No known command specified, type --help for help
+    hc-state: no known command specified, type --help for help
 `
     }
 
-    console.log(context);
+    if (context) console.log(context);
     console.log(result);
 }
 
