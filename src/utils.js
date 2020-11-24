@@ -88,9 +88,9 @@ export const listCellIds = async () => {
  * Lists array of all active apps
  * @returns {Array}
  */
-export const listActiveAppIds = async () => {
+export const listActiveApps = async () => {
     const adminWebsocket = await getAdminWebsocket();
-    return await adminWebsocket.listActiveAppIds();
+    return await adminWebsocket.listActiveApps();
 }
 
 /**
