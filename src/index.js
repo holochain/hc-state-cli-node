@@ -1,4 +1,4 @@
-import { listDnas, listCellIds, listActiveAppIds, dumpState } from "./utils";
+import { listDnas, listCellIds, listActiveApps, dumpState } from "./utils";
 
 const main = async () => {
     const argv = process.argv;
@@ -12,7 +12,7 @@ const main = async () => {
         result = await listCellIds();
     } else if (argv[2] === '--list-active-app-ids' || argv[2] === '-a') {
         context = `Active App Ids:`;
-        result = await listActiveAppIds();
+        result = await listActiveApps();
     } else if (argv[2] === '--state-dump' || argv[2] === '-s') {
         context = `State dump:`;
         result = await dumpState(argv[3]);
@@ -22,7 +22,7 @@ const main = async () => {
         usage:
             hc-state --command arg
         
-            -a --list-active-app-ids (no arg) calls ListActiveAppIds(void) -> [AppId: string]
+            -a --list-active-app-ids (no arg) calls listActiveApps(void) -> [AppId: string]
             -c --list-cell-ids (no arg) calls ListCellIds(void) -> [CellId: CellIdBase64]
             -d --list-dnas (no arg) calls ListDnas(void) -> [DnaHash: string]
             -s --state-dump CellIdBase64 calls dumpState(CellIdBase64) -> [stateDump: any]
