@@ -135,11 +135,10 @@ export const dumpState = async (cellIdArg) => {
     }
 
     const adminWebsocket = await getAdminWebsocket();
-    let result = await adminWebsocket.dumpState({
+    const stateDump = await adminWebsocket.dumpState({
         cell_id: cellId
     });
-
     // Replace all the buffers with byte64 representations
-    result = stringifyBuffRec(result);
-    return JSON.stringify(result, null, 4);
+    let result = stringifyBuffRec(stateDump);
+    return JSON.stringify(result, null, 4)+`\n\n${stateDump.length} Elements in dump`;
 }
