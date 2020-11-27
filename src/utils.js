@@ -6,9 +6,9 @@ let adminWebsocket;
 /**
  * Iterates recursively over deeply nested object values and converts each value that is Buffer
  * (exactly array representation of Buffer) into base64 representation of Buffer.
- * 
+ *
  * Identifies Buffers by object key name being one of buffer_keys.
- * 
+ *
  * @param {Object} obj
  * @returns {Object}
  */
@@ -64,9 +64,9 @@ export const listDnas = async () => {
     const adminWebsocket = await getAdminWebsocket();
     let result = await adminWebsocket.listDnas();
 
-    if (Array.isArray(result)) 
+    if (Array.isArray(result))
         result = result.map(dna => dna.toString('base64'));
-    
+
     return result;
 }
 
@@ -78,7 +78,7 @@ export const listCellIds = async () => {
     const adminWebsocket = await getAdminWebsocket();
     let result = await adminWebsocket.listCellIds();
 
-    if (Array.isArray(result)) 
+    if (Array.isArray(result))
         result = result.map(cell_id => [cell_id[0].toString('base64'), cell_id[1].toString('base64')]);
 
     return result;
@@ -95,32 +95,48 @@ export const listActiveApps = async () => {
 
 /**
  * Dumps state of holochain for given cell id in a pretty format
- * @param {CellID} cellId 
+ * @param {CellID | int} cellIdArg
  * @returns string
  */
-export const dumpState = async (cellId) => {
-    if (!cellId) return `Error: No cell_id passed.`;
+export const dumpState = async (cellIdArg) => {
+    if (!cellIdArg) return `Error: No cell_id passed.`;
 
-    // Convert console.log output format into JSON format so that it can be parsed
-    cellId = cellId.replace(/'/g, '"');
+    let cellId;
 
-    let obj;
-
-    try {
-        obj = JSON.parse(cellId);
-        if (Array.isArray(obj)) {
-            obj[0] = Buffer.from(obj[0], 'base64');
-            obj[1] = Buffer.from(obj[1], 'base64');
+    const index = parseInt(cellIdArg);
+    if (`${index}` == cellIdArg) {
+        // arg is a index so get cell ID list from conductor
+        const adminWebsocket = await getAdminWebsocket();
+        let result = await adminWebsocket.listCellIds();
+        if (Array.isArray(result)) {
+            if (index >= result.length) {
+                return `CellId index (zero based) provided was ${index}, but there are only ${result.length} cell(s)`;
+            }
+            cellId = result[index];
         } else {
-            return `Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]`;
+            return `Expected array from listCellIds() got: ${result}`;
         }
-    } catch (e) {
-        return `Error parsing cell_id: ${e}`;
+    } else {
+        // Convert console.log output format into JSON format so that it can be parsed
+        cellIdArg = cellIdArg.replace(/'/g, '"');
+
+
+        try {
+            cellId = JSON.parse(cellIdArg);
+            if (Array.isArray(cellId)) {
+                cellId[0] = Buffer.from(cellId[0], 'base64');
+                cellId[1] = Buffer.from(cellId[1], 'base64');
+            } else {
+                return `Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]`;
+            }
+        } catch (e) {
+            return `Error parsing cell_id: ${e}`;
+        }
     }
 
     const adminWebsocket = await getAdminWebsocket();
     let result = await adminWebsocket.dumpState({
-        cell_id: obj
+        cell_id: cellId
     });
 
     // Replace all the buffers with byte64 representations
