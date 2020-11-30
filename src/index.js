@@ -21,19 +21,20 @@ const main = async () => {
     CLI tool for querying holochain over admin port (default = 4444)
         usage:
             hc-state --command arg
-        
+
             -a --list-active-app-ids (no arg) calls listActiveApps(void) -> [AppId: string]
             -c --list-cell-ids (no arg) calls ListCellIds(void) -> [CellId: CellIdBase64]
             -d --list-dnas (no arg) calls ListDnas(void) -> [DnaHash: string]
             -s --state-dump CellIdBase64 calls dumpState(CellIdBase64) -> [stateDump: any]
             -h --help shows this help
-        
-        where 
-            CellIdBase64 = 
+
+        where
+            CellIdBase64 =
                 [
                     DnaHashBase64: string, // base64 representation of Buffer length 39
                     AgentPubKeyBase64: string // base64 representation of Buffer length 39
                 ]
+            or numeric index of cell ID returned by ListCellIds
 
         example
             hc-state -s "[
