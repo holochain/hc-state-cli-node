@@ -1,4 +1,14 @@
+import { ADMIN_PORT } from "./config";
 import { listDnas, listCellIds, listActiveApps, dumpState } from "./utils";
+
+const fetchAdminPort = (nextArgNumber) => {
+    const argv = process.argv;
+    if (argv[nextArgNumber] === '--admin-port' || argv[nextArgNumber] === '-p') {
+        const adminPort = argv[nextArgNumber + 1];
+        return adminPort;
+    }
+    return ADMIN_PORT;
+}
 
 const main = async () => {
     const argv = process.argv;
@@ -6,27 +16,35 @@ const main = async () => {
 
     if (argv[2] === '--list-dnas' || argv[2] === '-d') {
         context = `Installed DNAs:`;
-        result = await listDnas();
+        const adminPort = fetchAdminPort(3)
+        result = await listDnas(adminPort);
     } else if (argv[2] === '--list-cell-ids' || argv[2] === '-c') {
         context = `Installed CellIds:`;
-        result = await listCellIds();
+        const adminPort = fetchAdminPort(3)
+        result = await listCellIds(adminPort);
     } else if (argv[2] === '--list-active-app-ids' || argv[2] === '-a') {
         context = `Active App Ids:`;
-        result = await listActiveApps();
+        const adminPort = fetchAdminPort(3)
+        result = await listActiveApps(adminPort);
     } else if (argv[2] === '--state-dump' || argv[2] === '-s') {
         context = `State dump:`;
-        result = await dumpState(argv[3]);
+        const adminPort = fetchAdminPort(4)
+        result = await dumpState(argv[3], adminPort);
     } else if (argv[2] === '--help' || argv[2] === '-h') {
         result = `
     CLI tool for querying holochain over admin port (default = 4444)
         usage:
-            hc-state --command arg
+            hc-state --command arg --sub-command arg
 
+            command args:
             -a --list-active-app-ids (no arg) calls listActiveApps(void) -> [AppId: string]
             -c --list-cell-ids (no arg) calls ListCellIds(void) -> [CellId: CellIdBase64]
             -d --list-dnas (no arg) calls ListDnas(void) -> [DnaHash: string]
-            -s --state-dump CellIdBase64 calls dumpState(CellIdBase64) -> [stateDump: any]
+            -s --state-dump <CellIdBase64> calls dumpState(CellIdBase64) -> [stateDump: any]
             -h --help shows this help
+
+            sub-command arg
+            -p --admin-port <PortNumber> provides port number to getAdminWebsocket(portNumber) -> adminWebsocket
 
         where
             CellIdBase64 =

@@ -1,4 +1,3 @@
-import { ADMIN_PORT } from "./config";
 import { AdminWebsocket } from "@holochain/conductor-api";
 
 let adminWebsocket;
@@ -45,14 +44,14 @@ const stringifyBuffRec = (obj) => {
  * Creates and returns websocket connection to admin interface of Holochain
  * @returns {AdminWebsocket}
  */
-const getAdminWebsocket = async () => {
+const getAdminWebsocket = async (adminPort) => {
     if (adminWebsocket) return adminWebsocket;
 
     console.log(`Connecting to holochain`);
     adminWebsocket = await AdminWebsocket.connect(
-        `ws://localhost:${ADMIN_PORT}`
+        `ws://localhost:${adminPort}`
     );
-    console.log(`Successfully connected to admin interface on port ${ADMIN_PORT}`);
+    console.log(`Successfully connected to admin interface on port ${adminPort}`);
     return adminWebsocket;
 }
 
@@ -60,8 +59,8 @@ const getAdminWebsocket = async () => {
  * Lists array of all the installed DNAs in base64 format
  * @returns {Array}
  */
-export const listDnas = async () => {
-    const adminWebsocket = await getAdminWebsocket();
+export const listDnas = async (adminPort) => {
+    const adminWebsocket = await getAdminWebsocket(adminPort);
     let result = await adminWebsocket.listDnas();
 
     if (Array.isArray(result))
@@ -74,8 +73,8 @@ export const listDnas = async () => {
  * Lists array of all created cell ids in a format [DnaHashBase64, AgentPubKeyBase64]
  * @returns {Array}
  */
-export const listCellIds = async () => {
-    const adminWebsocket = await getAdminWebsocket();
+export const listCellIds = async (adminPort) => {
+    const adminWebsocket = await getAdminWebsocket(adminPort);
     let result = await adminWebsocket.listCellIds();
 
     if (Array.isArray(result))
@@ -88,8 +87,8 @@ export const listCellIds = async () => {
  * Lists array of all active apps
  * @returns {Array}
  */
-export const listActiveApps = async () => {
-    const adminWebsocket = await getAdminWebsocket();
+export const listActiveApps = async (adminPort) => {
+    const adminWebsocket = await getAdminWebsocket(adminPort);
     return await adminWebsocket.listActiveApps();
 }
 
@@ -98,7 +97,7 @@ export const listActiveApps = async () => {
  * @param {CellID | int} cellIdArg
  * @returns string
  */
-export const dumpState = async (cellIdArg) => {
+export const dumpState = async (cellIdArg, adminPort) => {
     if (!cellIdArg) return `Error: No cell_id passed.`;
 
     let cellId;
@@ -106,7 +105,7 @@ export const dumpState = async (cellIdArg) => {
     const index = parseInt(cellIdArg);
     if (`${index}` == cellIdArg) {
         // arg is a index so get cell ID list from conductor
-        const adminWebsocket = await getAdminWebsocket();
+        const adminWebsocket = await getAdminWebsocket(adminPort);
         let result = await adminWebsocket.listCellIds();
         if (Array.isArray(result)) {
             if (index >= result.length) {
@@ -134,7 +133,7 @@ export const dumpState = async (cellIdArg) => {
         }
     }
 
-    const adminWebsocket = await getAdminWebsocket();
+    const adminWebsocket = await getAdminWebsocket(adminPort);
     const stateDump = await adminWebsocket.dumpState({
         cell_id: cellId
     });
