@@ -49,10 +49,11 @@ const getAdminWebsocket = async () => {
     if (adminWebsocket) return adminWebsocket;
 
     console.log(`Connecting to holochain`);
+    let adminPort = process.env.ADMIN_PORT ? process.env.ADMIN_PORT : ADMIN_PORT
     adminWebsocket = await AdminWebsocket.connect(
-        `ws://localhost:${ADMIN_PORT}`
+        `ws://localhost:${adminPort}`
     );
-    console.log(`Successfully connected to admin interface on port ${ADMIN_PORT}`);
+    console.log(`Successfully connected to admin interface on port ${adminPort}`);
     return adminWebsocket;
 }
 

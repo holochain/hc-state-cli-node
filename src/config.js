@@ -1,1 +1,1 @@
-export const ADMIN_PORT = 4444;
+export const ADMIN_PORT = 1234;
