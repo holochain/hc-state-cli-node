@@ -105,7 +105,13 @@ export const listCellIds = async () => {
  */
 export const listActiveApps = async () => {
     const adminWebsocket = await getAdminWebsocket();
-    return await adminWebsocket.listActiveApps();
+    let result
+    try {
+      result = await adminWebsocket.listActiveApps();
+    } catch (e) {
+      return `Error: ${JSON.stringify(e)}`
+    }
+    return result
 }
 
 /**
