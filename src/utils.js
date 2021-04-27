@@ -164,8 +164,12 @@ export const dumpState = async (cellIdArg) => {
  * @returns string
 */
  export const appInfo = async (installedAppId) => {
+  if (!cellIdArg) return `Error: No installed_app_id passed.`;
+
   const appWebsocket = await getAppWebsocket();
   const result = await appWebsocket.appInfo({ installed_app_id: installedAppId });
+
+  console.log('result', result)
 
   if (!result.cell_data) return `no cell data found for installed_app_id: ${installedAppId}`
 

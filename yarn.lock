@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@holochain/conductor-api@0.0.1-dev.13":
-  version "0.0.1-dev.13"
-  resolved "https://registry.yarnpkg.com/@holochain/conductor-api/-/conductor-api-0.0.1-dev.13.tgz#be4ba9c44276754e62513ba9596e1649c9f67562"
-  integrity sha512-VLyJ14BTVY/5s/7gFJRBlsgBvk3/GCRxVU44hlA/v0uBr9IclrYOoLvK+sW6LHtMrsD4qxmUlj4ivOWkZFKOxw==
+"@holochain/conductor-api@0.0.1-dev.11":
+  version "0.0.1-dev.11"
+  resolved "https://registry.yarnpkg.com/@holochain/conductor-api/-/conductor-api-0.0.1-dev.11.tgz#6cbd83925d5b9a961fbf3112aa85e99e9eefea4d"
+  integrity sha512-b+lX+13YCzTQeyOhQ9KyJiwRGJnQkrpVzgCO5w/EtmP9pgu++pGQKbJxh8Akt+lafIzcuo0v/1duVccShJIaVw==
   dependencies:
     "@msgpack/msgpack" "^2.1.0"
     "@types/ws" "^7.2.4"
