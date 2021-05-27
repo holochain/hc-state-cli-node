@@ -13,7 +13,7 @@
   "author": "peeech",
   "license": "MIT",
   "dependencies": {
-    "@holochain/conductor-api": "0.0.1"
+    "@holochain/conductor-api": "0.0.4"
   },
   "devDependencies": {
     "webpack": "^4.44.2",

@@ -1,5 +1,6 @@
 import { ADMIN_PORT, APP_PORT } from "./config";
 import { AdminWebsocket, AppWebsocket } from "@holochain/conductor-api";
+import { inspect } from 'util'
 
 let adminWebsocket, appWebsocket;
 
@@ -59,7 +60,7 @@ const getAdminWebsocket = async () => {
 
 /**
  * Creates and returns websocket connection to app interface of Holochain
- * @returns {AdminWebsocket}
+ * @returns {AppWebsocket}
  */
  const getAppWebsocket = async () => {
   if (appWebsocket) return appWebsocket;
@@ -171,12 +172,10 @@ export const dumpState = async (cellIdArg) => {
  * @returns string
 */
  export const appInfo = async (installedAppId) => {
-  if (!cellIdArg) return `Error: No installed_app_id passed.`;
+  if (!installedAppId) return `Error: No installed_app_id passed.`;
 
   const appWebsocket = await getAppWebsocket();
   const result = await appWebsocket.appInfo({ installed_app_id: installedAppId });
-
-  console.log('result', result)
 
   if (!result.cell_data) return `no cell data found for installed_app_id: ${installedAppId}`
 
@@ -184,7 +183,9 @@ export const dumpState = async (cellIdArg) => {
     ...result,
     cell_data: result.cell_data.map(cell => ({
       ...cell,
-      cell_id: cell.cell_id.toString('base64')
+      cell_id: inspect(
+        cell.cell_id.map(id => id.toString('base64'))
+      )
     }))
   }
 }
