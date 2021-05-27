@@ -1,7 +1,7 @@
-import { ADMIN_PORT } from "./config";
-import { AdminWebsocket } from "@holochain/conductor-api";
+import { ADMIN_PORT, APP_PORT } from "./config";
+import { AdminWebsocket, AppWebsocket } from "@holochain/conductor-api";
 
-let adminWebsocket;
+let adminWebsocket, appWebsocket;
 
 /**
  * Iterates recursively over deeply nested object values and converts each value that is Buffer
@@ -48,13 +48,28 @@ const stringifyBuffRec = (obj) => {
 const getAdminWebsocket = async () => {
     if (adminWebsocket) return adminWebsocket;
 
-    console.log(`Connecting to holochain`);
+    console.log(`Connecting to admin port`);
     let adminPort = process.env.ADMIN_PORT ? process.env.ADMIN_PORT : ADMIN_PORT
     adminWebsocket = await AdminWebsocket.connect(
         `ws://localhost:${adminPort}`
     );
     console.log(`Successfully connected to admin interface on port ${adminPort}`);
     return adminWebsocket;
+}
+
+/**
+ * Creates and returns websocket connection to app interface of Holochain
+ * @returns {AdminWebsocket}
+ */
+ const getAppWebsocket = async () => {
+  if (appWebsocket) return appWebsocket;
+
+  console.log(`Connecting to app port`);
+  appWebsocket = await AppWebsocket.connect(
+      `ws://localhost:${APP_PORT}`
+  );
+  console.log(`Successfully connected to app interface on port ${APP_PORT}`);
+  return appWebsocket;
 }
 
 /**
@@ -91,7 +106,13 @@ export const listCellIds = async () => {
  */
 export const listActiveApps = async () => {
     const adminWebsocket = await getAdminWebsocket();
-    return await adminWebsocket.listActiveApps();
+    let result
+    try {
+      result = await adminWebsocket.listActiveApps();
+    } catch (e) {
+      return `Error: ${JSON.stringify(e)}`
+    }
+    return result
 }
 
 /**
@@ -142,4 +163,28 @@ export const dumpState = async (cellIdArg) => {
     // Replace all the buffers with byte64 representations
     let result = stringifyBuffRec(stateDump);
     return JSON.stringify(result, null, 4)+`\n\n${stateDump.length} Elements in dump`;
+}
+
+/**
+ * Shows app info for given app id
+ * @param { string } installedAppId
+ * @returns string
+*/
+ export const appInfo = async (installedAppId) => {
+  if (!cellIdArg) return `Error: No installed_app_id passed.`;
+
+  const appWebsocket = await getAppWebsocket();
+  const result = await appWebsocket.appInfo({ installed_app_id: installedAppId });
+
+  console.log('result', result)
+
+  if (!result.cell_data) return `no cell data found for installed_app_id: ${installedAppId}`
+
+  return {
+    ...result,
+    cell_data: result.cell_data.map(cell => ({
+      ...cell,
+      cell_id: cell.cell_id.toString('base64')
+    }))
+  }
 }

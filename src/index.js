@@ -1,4 +1,4 @@
-import { listDnas, listCellIds, listActiveApps, dumpState } from "./utils";
+import { listDnas, listCellIds, listActiveApps, dumpState, appInfo } from "./utils";
 
 const main = async () => {
     const argv = process.argv;
@@ -16,6 +16,9 @@ const main = async () => {
     } else if (argv[2] === '--state-dump' || argv[2] === '-s') {
         context = `State dump:`;
         result = await dumpState(argv[3]);
+    } else if (argv[2] === '--app-info' || argv[2] === '-i') {
+        context = `App info:`;
+        result = await appInfo(argv[3]);
     } else if (argv[2] === '--help' || argv[2] === '-h') {
         result = `
     CLI tool for querying holochain over admin port (default = 4444)
@@ -26,6 +29,7 @@ const main = async () => {
             -c --list-cell-ids (no arg) calls ListCellIds(void) -> [CellId: CellIdBase64]
             -d --list-dnas (no arg) calls ListDnas(void) -> [DnaHash: string]
             -s --state-dump CellIdBase64 calls dumpState(CellIdBase64) -> [stateDump: any]
+            -i --app-info InstalledAppId calls appInfo(InstalledAppId) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean}
             -h --help shows this help
 
         where
