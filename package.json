@@ -15,7 +15,7 @@
   "dependencies": {
     "@holochain/conductor-api": "0.0.4",
     "babel": "^6.23.0",
-    "yargs": "^17.0.1"
+    "commander": "^6.2.0"
   },
   "bin": {
     "holochain-run-dna": "./dist/main.js"
@@ -26,10 +26,10 @@
     "@rollup/plugin-node-resolve": "^10.0.0",
     "babel-loader": "^8.2.2",
     "babel-preset-es2015": "^6.24.1",
+    "bufferutil": "^4.0.1",
     "rollup": "^2.33.3",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-preserve-shebang": "^1.0.1",
-    "bufferutil": "^4.0.1",
     "utf-8-validate": "^5.0.2"
   }
 }
