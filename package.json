@@ -13,6 +13,7 @@
   "author": "peeech",
   "license": "MIT",
   "dependencies": {
+    "@holo-host/cryptolib": "^0.3.0",
     "@holochain/conductor-api": "0.0.4",
     "commander": "^6.2.0"
   },

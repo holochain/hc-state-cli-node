@@ -191,12 +191,11 @@ export const dumpState = async (adminWebsocket, cellIdArg) => {
  * @returns ZomeCallResult : any
 */
 export const zomeCall = async (appWebsocket, args) => {
-    if (!installedAppId) throw new Error(`Error: No installed_app_id passed.`);
+    if (!args) throw new Error(`Error: No args provided for callZome.`);
 	let result;
 	try {
     result = await appWebsocket.callZome(args);
 	} catch (error) {
-		console.error('Error when calling zomeCall: ', error)
     return error
 	}
 }
