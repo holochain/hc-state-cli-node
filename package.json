@@ -4,7 +4,7 @@
   "description": "CLI tool for querying holochain over admin port",
   "main": "./dist/main.js",
   "scripts": {
-    "build": "webpack --config webpack.config.cjs"
+    "build": "rollup -c rollup.config.js"
   },
   "repository": {
     "type": "git",
@@ -14,11 +14,21 @@
   "license": "MIT",
   "dependencies": {
     "@holochain/conductor-api": "0.0.4",
+    "babel": "^6.23.0",
     "yargs": "^17.0.1"
   },
+  "bin": {
+    "holochain-run-dna": "./dist/main.js"
+  },
   "devDependencies": {
-    "webpack": "^4.44.2",
-    "webpack-cli": "^4.1.0",
+    "@babel/core": "^7.12.9",
+    "@rollup/plugin-commonjs": "^16.0.0",
+    "@rollup/plugin-node-resolve": "^10.0.0",
+    "babel-loader": "^8.2.2",
+    "babel-preset-es2015": "^6.24.1",
+    "rollup": "^2.33.3",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-preserve-shebang": "^1.0.1",
     "bufferutil": "^4.0.1",
     "utf-8-validate": "^5.0.2"
   }

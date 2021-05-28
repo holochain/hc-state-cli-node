@@ -1,7 +1,8 @@
-import { ADMIN_PORT, APP_PORT } from "./config";
+import { getArgs } from "./index";
 import { AdminWebsocket, AppWebsocket } from "@holochain/conductor-api";
 import { inspect } from 'util'
 
+const { adminPort, appPort } = getArgs()
 let adminWebsocket, appWebsocket;
 
 /**
@@ -50,7 +51,6 @@ const getAdminWebsocket = async () => {
     if (adminWebsocket) return adminWebsocket;
 
     console.log(`Connecting to admin port`);
-    let adminPort = process.env.ADMIN_PORT ? process.env.ADMIN_PORT : ADMIN_PORT
     adminWebsocket = await AdminWebsocket.connect(
         `ws://localhost:${adminPort}`
     );
@@ -67,9 +67,9 @@ const getAdminWebsocket = async () => {
 
   console.log(`Connecting to app port`);
   appWebsocket = await AppWebsocket.connect(
-      `ws://localhost:${APP_PORT}`
+      `ws://localhost:${appPort}`
   );
-  console.log(`Successfully connected to app interface on port ${APP_PORT}`);
+  console.log(`Successfully connected to app interface on port ${appPort}`);
   return appWebsocket;
 }
 

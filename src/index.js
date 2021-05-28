@@ -1,166 +1,134 @@
-import fs from "fs";
-import yargs from "yargs";
+import { listDnas, listCellIds, listActiveApps, dumpState, appInfo } from "./utils";
 import { hideBin } from "yargs/helpers";
-const chalk = require('chalk');
+import yargs from "yargs";
 
-// import { listDnas, listCellIds, listActiveApps, dumpState, appInfo } from "./utils";
+function inputGuide() {
+  throw new Error(`
+  CLI tool for querying holochain over admin port (default = 4444)
+    usage:
+      hc-state --command arg
 
-function inputGuide(msg, help = false) {
-    const logMsg = msg || '';
-    throw new Error(`
-    CLI tool for querying holochain over admin port (default = 4444)
-        usage:
-            hc-state --command arg
+      -a --list-active-app-ids (no arg) calls listActiveApps(void) -> [AppId: string]
+      -c --list-cell-ids (no arg) calls ListCellIds(void) -> [CellId: CellIdBase64]
+      -d --list-dnas (no arg) calls ListDnas(void) -> [DnaHash: string]
+      -s --state-dump CellIdBase64 calls dumpState(CellIdBase64) -> [stateDump: any]
+      -i --app-info InstalledAppId calls appInfo(InstalledAppId) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean}
+      -p --app-port 
+      -f --admin-port
+      -h --help shows this help
 
-            -a --list-active-app-ids (no arg) calls listActiveApps(void) -> [AppId: string]
-            -c --list-cell-ids (no arg) calls ListCellIds(void) -> [CellId: CellIdBase64]
-            -d --list-dnas (no arg) calls ListDnas(void) -> [DnaHash: string]
-            -s --state-dump CellIdBase64 calls dumpState(CellIdBase64) -> [stateDump: any]
-            -i --app-info InstalledAppId calls appInfo(InstalledAppId) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean}
-            -p --app-port 
-            -f --admin-port
-            -h --help shows this help
+    where
+      CellIdBase64 =
+        [
+          DnaHashBase64: string, // base64 representation of Buffer length 39
+          AgentPubKeyBase64: string // base64 representation of Buffer length 39
+        ]
+      or numeric index of cell ID returned by ListCellIds
 
-        where
-            CellIdBase64 =
-                [
-                    DnaHashBase64: string, // base64 representation of Buffer length 39
-                    AgentPubKeyBase64: string // base64 representation of Buffer length 39
-                ]
-            or numeric index of cell ID returned by ListCellIds
-
-        example
-            hc-state -s "[
-                'hC0kqcfqvJ8krBR0bNnPsmLtFiEiMOHM0fX+U8FW+ROc7P10tUdc',
-                'hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac'
-            ]"
-`)}
+    example
+      hc-state -s "[
+        'hC0kqcfqvJ8krBR0bNnPsmLtFiEiMOHM0fX+U8FW+ROc7P10tUdc',
+        'hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac'
+      ]"
+  `)
+}
   
 
 export function getArgs() {
-    const yarg = yargs(hideBin(process.argv))
-      .help()
-      .option("port", {
-        alias: "p",
-        type: "integer",
-        default: 8888,
-        description:
-          "print port where the application interface of the conductor will be attached",
-      })
-      .option("admin-port", {
-        alias: "f",
-        type: "integer",
-        description:
-          "print port where the admin interface of the conductor will be attached",
-      })
-      .option("list-dnas", {
-        alias: "d",
-        type: "string",
-        description:
-          "list of installed DNAs",
-      })
-      .option("list-cell-ids", {
-        alias: "c",
-        type: "string",
-        description:
-          "list of installed cells IDs",
-      })
-      .option("list-cell-ids", {
-        alias: "c",
-        type: "string",
-        description:
-          "list of installed cells IDs",
-      })
-      .option("list-active-app-ids", {
-        alias: "a",
-        type: "string",
-        description:
-          "list active app IDs",
-      })
-      .option("state-dump", {
-        alias: "s",
-        type: "string",
-        description:
-          "dump chain state for app",
-      })
-      .option("app-info", {
-        alias: "i",
-        type: "string",
-        description:
-          "print app info",
-      })
-      .help('info')
-      .argv;
+  const yarg = yargs(hideBin(process.argv))
+    .help()
+    .option("port", {
+      alias: "p",
+      type: "integer",
+      default: 8888,
+      description:
+        "assign app port for outbound app interface calls",
+    })
+    .option("admin-port", {
+      alias: "f",
+      type: "integer",
+      default: 4444,
+      description:
+        "assign admin port for outbond admin interface calls",
+    })
+    .option("list-dnas", {
+      alias: "d",
+      description:
+        "lists installed DNAs",
+    })
+    .option("list-cell-ids", {
+      alias: "c",
+      description:
+        "lists installed cells IDs",
+    })
+    .option("list-active-app-ids", {
+      alias: "a",
+      description:
+        "lists active app IDs",
+    })
+    .option("state-dump", {
+      alias: "s",
+      type: "string",
+      description:
+        "dumps chain state for app",
+    })
+    .option("app-info", {
+      alias: "i",
+      type: "string",
+      description:
+        "prints app info",
+    })
+    .help('info')
+    .argv;
 
-      if (yarg.help) inputGuide(null, yarg.help);
-      if (yarg.useAlternativeConductorPort && (typeof yarg.useAlternativeConductorPort !== 'number')) inputGuide('Cannot use -x flag without providing a port number of type integer.');
-      
-      return {
-        appPort: yarg.port,
-        adminPort: yarg.adminPort,
-        listDnas: yarg.listDnas,
-        // ...
-    };
+  console.log(argv);
+
+  if (yarg.help) inputGuide();
+  if (yarg.useAlternativeConductorPort && (typeof yarg.useAlternativeConductorPort !== 'number')) inputGuide('Cannot use -x flag without providing a port number of type integer.');
+  
+  return {
+    appPort: yarg.port,
+    adminPort: yarg.adminPort,
+    listDnas: yarg.listDnas,
+    listCellIds: yarg.listCellIds,
+    listActiveAppIds: yarg.listActiveAppIds,
+    stateDump: yarg.stateDump,
+    appInfo: yarg.appInfo
+  };
 }
 
-
-
 async function processArgs(args) {
-    // If the admin port was set by the user, we shouldn't change it
-    let adminPort = appToInstall.adminPort;
-    if (!adminPort) {
-      // Find a free port for the admin websocket,
-      // but only if the admin port was not set by the user
-      adminPort = await getPort({ port: appToInstall.adminPort });
-    }
-  
-    let configCreated, realAdminPort
-    if (!appToInstall.useAltConductorPort) {
-      // Execute holochain
-      ([configCreated, realAdminPort] = await execHolochain(
-        adminPort,
-        appToInstall.runPath,
-        appToInstall.proxyUrl
-        ));
-      } else {
-        realAdminPort = appToInstall.useAltConductorPort
-        console.log(chalk.bold.blue(`Skipping internal Holochain Conductor setup and instead connecting to admin port of running Conductor at ${realAdminPort}.`))
-    }
-  
-    // If the config file was created assume we also need to install everything
-    if (configCreated || appToInstall.useAltConductorPort) {
-        await sleep(100);
-      
-        let adminWebsocket;
-        try {
-          adminWebsocket = await AdminWebsocket.connect(
-            `ws://localhost:${realAdminPort}`
-          );        
-        } catch (error) {
-          throw new Error('Failed to connect to Admin Interface. Error: ', error);
-        }
-  
-        let agentPubKey;
-        if (!appToInstall.multipleAgents) {
-          console.log(chalk.bold.blue('(-m FLAG OFF) Generating single agent pub key for all apps.'));
-          try {
-            agentPubKey = await genPubKey(adminWebsocket);
-          } catch (error) {
-            throw new Error('Unable to generate agent key. Error : ', error);
-          }
-        }
-  
-        if (appToInstall.happs) {
-        const happs = yaml.safeLoad(fs.readFileSync(appToInstall.happs, 'utf8'));
-        for(let happ of happs){
-          await installApp(adminWebsocket, agentPubKey, happ.app_port,  happ.dnas, happ.app_name);
-        }
-      } else {
-        await installApp(adminWebsocket, agentPubKey, appToInstall.appPort,  appToInstall.dnas, appToInstall.installedAppId);
-      }
-      await adminWebsocket.client.close();
-    }
+  let context, result;
+  switch (args) {
+    case args.listDnas:
+      context = `Installed DNAs:`;
+      result = await listDnas();
+      break;
+    case args.listCellIds:
+      context = `Installed CellIds:`;
+      result = await listCellIds();
+      break;
+    case args.listActiveAppIds:
+      context = `Active App Ids :`;
+      result = await listActiveApps();
+      break;
+    case args.stateDump:
+      context = `State dump:`;
+      result = await dumpState();
+      break; 
+    case args.appInfo:
+      context = `App info:`;
+      result = await appInfo();
+      break;  
+    default:
+      console.error('Received an unexpected argument')
+      inputGuide()
+      break;
   }
+
+  if (context) console.log(context);
+  console.log(result);
+}
 
 try {
     const args = getArgs();
