@@ -13,12 +13,13 @@
   "author": "peeech",
   "license": "MIT",
   "dependencies": {
-    "@holochain/conductor-api": "0.0.4"
+    "@holochain/conductor-api": "0.0.4",
+    "commander": "^6.2.0"
   },
   "devDependencies": {
-    "webpack": "^4.44.2",
-    "webpack-cli": "^4.1.0",
     "bufferutil": "^4.0.1",
-    "utf-8-validate": "^5.0.2"
+    "utf-8-validate": "^5.0.2",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^4.1.0"
   }
 }
