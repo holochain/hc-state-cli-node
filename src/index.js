@@ -1,6 +1,7 @@
 import { listDnas, listCellIds, listActiveApps, dumpState, appInfo } from "./utils";
-import { hideBin } from "yargs/helpers";
 import yargs from "yargs";
+// import { hideBin } from "yargs/helpers";
+const { hideBin } = require("yargs")
 
 function inputGuide() {
   throw new Error(`
@@ -134,7 +135,7 @@ try {
     const args = getArgs();
     processArgs(args)
         .then(()=> process.exit())
-        .catch(() => { throw new Error(error) });
+        .catch(() => { throw new Error(error) })
   } catch (e) {
     console.error(e.message);
     process.exit(1)
