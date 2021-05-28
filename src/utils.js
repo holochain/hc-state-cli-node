@@ -118,12 +118,12 @@ export const listActiveApps = async (adminWebsocket) => {
  * @param {CellID | int} cellIdArg
  * @returns string
  */
-export const dumpState = async (cellIdArg, adminWebsocket) => {
-    if (!cellIdArg) return `Error: No cell_id passed.`;
-
+export const dumpState = async (adminWebsocket, cellIdArg) => {
+    console.log('cell Id Arg : ', cellIdArg)
+		if (!cellIdArg) throw new Error(`Error: No cell_id passed.`);
     let cellId;
 
-    const index = parseInt(cellIdArg);
+		const index = parseInt(cellIdArg);
     if (`${index}` == cellIdArg) {
         // arg is a index so get cell ID list from conductor
         let result = await adminWebsocket.listCellIds();
@@ -136,21 +136,15 @@ export const dumpState = async (cellIdArg, adminWebsocket) => {
             return `Expected array from listCellIds() got: ${result}`;
         }
     } else {
-        // Convert console.log output format into JSON format so that it can be parsed
-        cellIdArg = cellIdArg.replace(/'/g, '"');
-
-
-        try {
-            cellId = JSON.parse(cellIdArg);
-            if (Array.isArray(cellId)) {
-                cellId[0] = Buffer.from(cellId[0], 'base64');
-                cellId[1] = Buffer.from(cellId[1], 'base64');
-            } else {
-                return `Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]`;
-            }
-        } catch (e) {
-            return `Error parsing cell_id: ${e}`;
-        }
+			// Convert cellIdArg into array format to satisfy dumpState arg type
+			cellId = cellIdArg.split(',')
+			console.log('cellId : ', cellId)
+			if (Array.isArray(cellId)) {
+					cellId[0] = Buffer.from(cellId[0], 'base64');
+					cellId[1] = Buffer.from(cellId[1], 'base64');
+			} else {
+					return `Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]`;
+			}
     }
 
     const stateDump = await adminWebsocket.dumpState({
@@ -158,7 +152,7 @@ export const dumpState = async (cellIdArg, adminWebsocket) => {
     });
     // Replace all the buffers with byte64 representations
     let result = stringifyBuffRec(stateDump);
-    return JSON.stringify(result, null, 4)+`\n\n${stateDump.length} Elements in dump`;
+    return JSON.stringify(result, null, 4)+`\n\nTotal Elements in Dump: ${stateDump.length}`;
 }
 
 /**
@@ -166,12 +160,16 @@ export const dumpState = async (cellIdArg, adminWebsocket) => {
  * @param { string } installedAppId
  * @returns string
 */
- export const appInfo = async (installedAppId, appWebsocket) => {
-  if (!installedAppId) return `Error: No installed_app_id passed.`;
+ export const appInfo = async (appWebsocket, installedAppId) => {
+  if (!installedAppId) throw new Error(`Error: No installed_app_id passed.`);
+	let result;
+	try {
+    result = await appWebsocket.appInfo({ installed_app_id: installedAppId });
+	} catch (error) {
+		console.error('Error when calling AppInfo: ', error)
+	}
 
-  const result = await appWebsocket.appInfo({ installed_app_id: installedAppId });
-
-  if (!result.cell_data) return `no cell data found for installed_app_id: ${installedAppId}`
+  if (!result.cell_data) return `No cell data found for installed_app_id : ${installedAppId}`
 
   return {
     ...result,
