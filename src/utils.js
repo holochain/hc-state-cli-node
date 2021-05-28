@@ -183,3 +183,20 @@ export const dumpState = async (adminWebsocket, cellIdArg) => {
     }))
   }
 }
+
+
+/**
+ * Call callZome for given cell (with params)
+ * @param { obj } installedAppId
+ * @returns ZomeCallResult : any
+*/
+export const zomeCall = async (appWebsocket, args) => {
+    if (!installedAppId) throw new Error(`Error: No installed_app_id passed.`);
+	let result;
+	try {
+    result = await appWebsocket.callZome(args);
+	} catch (error) {
+		console.error('Error when calling zomeCall: ', error)
+    return error
+	}
+}

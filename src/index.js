@@ -1,4 +1,5 @@
 import { getAdminWebsocket, getAppWebsocket, listDnas, listCellIds, listActiveApps, dumpState, appInfo } from "./utils";
+import { inspect } from 'util'
 const { version } = require('../package.json');
 const { Command } = require('commander');
 
@@ -51,7 +52,7 @@ export async function getArgs() {
   program
     .command("listDnas")
     .alias('d')
-    .description("list installed DNAs: calls ListDnas(void) -> [DnaHash: string]")
+    .description("list installed DNAs: calls listDnas(void) -> [DnaHash: string]")
     .action(async () => {
       const result = await call_admin_port(listDnas, program.opts().adminPort);
       console.log(`Installed DNAs:`);
@@ -93,8 +94,29 @@ export async function getArgs() {
     .command("appInfo <InstalledAppId>")
     .alias('i')
     .description("print app info for app: calls appInfo(InstalledAppId) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean}")
-    .action(async (installedAppId) => { 
+    .action(async (installedAppId) => {
       const result = await call_app_port(appInfo, program.opts().appPort, installedAppId);
+      console.log(`App Info for App:`);
+      console.log(result);
+    })
+
+  program
+    .command("zomeCall <AgentHash> <DnaHash> <ZomeName> <ZomeFunction> <Payload>")
+    .alias('z')
+    .description("call zome function for cell: calls callZome(cell_id, agent_pubkey, zome_name, fn_name) -> ZomeCallResult: any")
+    .action(async (AgentHash, DnaHash, ZomeName, ZomeFunction, Payload) => {
+
+    const args = {
+      cell_id: [ Buffer.from( DnaHash, "base64" ), Buffer.from( AgentHash, "base64" ) ],
+      zome_name: ZomeName,
+      fn_name: ZomeFunction,
+      payload: Payload || null,
+      provenance: AgentHash
+    }
+    
+    console.log("Calling zome function with args %s", inspect(args) );
+
+    const result = await call_app_port(zomeCall, program.opts().appPort, args);
       console.log(`App Info for App:`);
       console.log(result);
     })
