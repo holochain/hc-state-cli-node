@@ -28,17 +28,28 @@ export async function getArgs() {
 
   program
     .version(version)
-    .description('CLI tool for querying holochain over admin port (default = 4444)')
+    .description(`CLI tool for querying holochain over admin port (default = 4444) or app port (default = 42233)
+  where
+    CellIdBase64 =
+      [
+        DnaHashBase64: string, // base64 representation of Buffer length 39
+        AgentPubKeyBase64: string // base64 representation of Buffer length 39
+      ]
+      or numeric index of cell ID returned by ListCellIds
+    
+  example
+    hc-state -s "[
+      'hC0kqcfqvJ8krBR0bNnPsmLtFiEiMOHM0fX+U8FW+ROc7P10tUdc',
+      'hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac'
+    ]`)
     .option('-p, --app-port <port>', 'assigns app port for outbound app-interface calls', 42233 )
     .option('-m, --admin-port <port>', 'assigns admin port for outbond admin-interface calls', 4444 )
-    // .addHelpText('afterAll', inputGuide)
     
   program
     .command("listDnas")
     .alias('d')
     .description("list installed DNAs: calls ListDnas(void) -> [DnaHash: string]")
-    .action(async (cmd) => {
-      // console.log('listDnas cmd %s', cmd);
+    .action(async () => {
       const result = await call_admin_port(listDnas, program.opts().adminPort);
       console.log(`Installed DNAs:`);
       console.log(result);
@@ -47,34 +58,18 @@ export async function getArgs() {
   program
     .command("listCellIds")
     .alias('c')
-    .description("list installed cells IDs: calls listCellIds(void) -> [CellId: CellIdBase64]")
-    .action(async (cmd) => {
-      // console.log('listCellIds cmd %s', cmd);
+    .description(`list installed cells IDs: calls listCellIds(void) -> [CellId: CellIdBase64]`)
+    .action(async () => {
       const result = await call_admin_port(listCellIds, program.opts().adminPort);
       console.log(`Installed CellIds:`);
       console.log(result);
     })
-    .addHelpCommand('after', `where
-    CellIdBase64 =
-      [
-        DnaHashBase64: string, // base64 representation of Buffer length 39
-        AgentPubKeyBase64: string // base64 representation of Buffer length 39
-      ]
-      or numeric index of cell ID returned by ListCellIds
-
-    example
-      hc-state -s "[
-        'hC0kqcfqvJ8krBR0bNnPsmLtFiEiMOHM0fX+U8FW+ROc7P10tUdc',
-        'hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac'
-      ]"
-    `)
 
   program
     .command("listActiveApps")
     .alias('a')
     .description("list active app IDs: calls listActiveApps(void) -> [AppId: string]")
-    .action(async (cmd) => {
-      // console.log('listActiveApps cmd %s', cmd);
+    .action(async () => {
       const result = await call_admin_port(listActiveApps, program.opts().adminPort);
       console.log(`Active App IDs:`);
       console.log(result);
@@ -85,6 +80,7 @@ export async function getArgs() {
     .alias('s')
     .description("dump chain state for app: calls dumpState(CellIdBase64) -> [stateDump: any]")
     .action(async (cmd) => {
+      // console.log(' 1 cmd %s', cmd);
       const result = await call_admin_port(dumpState, program.opts().adminPort);
       console.log(`State Dump for App:`);
       console.log(result);
@@ -95,7 +91,7 @@ export async function getArgs() {
     .alias('i')
     .description("print app info for app: calls appInfo(InstalledAppId) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean}")
     .action(async (cmd) => {
-      // console.log('appInfo cmd %s', cmd);
+      // console.log(' 2 cmd %s', cmd);
       const result = await call_app_port(appInfo, program.opts().adminPort);
       console.log(`App Info for App:`);
       console.log(result);
