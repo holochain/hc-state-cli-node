@@ -1,7 +1,7 @@
 import { listDnas, listCellIds, listActiveApps, dumpState, appInfo } from "./utils";
 import yargs from "yargs";
-// import { hideBin } from "yargs/helpers";
-const { hideBin } = require("yargs")
+import { hideBin } from "yargs";
+// const { hideBin } = require("yargs/helpers")
 
 function inputGuide() {
   throw new Error(`
@@ -15,7 +15,7 @@ function inputGuide() {
       -s --state-dump CellIdBase64 calls dumpState(CellIdBase64) -> [stateDump: any]
       -i --app-info InstalledAppId calls appInfo(InstalledAppId) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean}
       -p --app-port 
-      -f --admin-port
+      -m --admin-port
       -h --help shows this help
 
     where
@@ -32,25 +32,24 @@ function inputGuide() {
         'hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac'
       ]"
   `)
-}
-  
+}; 
 
 export function getArgs() {
   const yarg = yargs(hideBin(process.argv))
     .help()
+    .option("admin-port", {
+      alias: "m",
+      type: "integer",
+      default: 4444,
+      description:
+        "assigns admin port for outbond admin-interface calls",
+    })
     .option("port", {
       alias: "p",
       type: "integer",
       default: 8888,
       description:
-        "assign app port for outbound app interface calls",
-    })
-    .option("admin-port", {
-      alias: "f",
-      type: "integer",
-      default: 4444,
-      description:
-        "assign admin port for outbond admin interface calls",
+        "assigns app port for outbound app-interface calls",
     })
     .option("list-dnas", {
       alias: "d",
@@ -62,22 +61,22 @@ export function getArgs() {
       description:
         "lists installed cells IDs",
     })
-    .option("list-active-app-ids", {
-      alias: "a",
-      description:
-        "lists active app IDs",
-    })
     .option("state-dump", {
       alias: "s",
       type: "string",
       description:
         "dumps chain state for app",
     })
+    .option("list-active-app-ids", {
+      alias: "a",
+      description:
+        "lists active app IDs",
+    })
     .option("app-info", {
       alias: "i",
       type: "string",
       description:
-        "prints app info",
+        "prints app info for app",
     })
     .help('info')
     .argv;
@@ -122,8 +121,8 @@ async function processArgs(args) {
       result = await appInfo();
       break;  
     default:
-      console.error('Received an unexpected argument')
-      inputGuide()
+      console.error('Received an unexpected argument');
+      inputGuide();
       break;
   }
 
@@ -132,11 +131,11 @@ async function processArgs(args) {
 }
 
 try {
-    const args = getArgs();
-    processArgs(args)
-        .then(()=> process.exit())
-        .catch(() => { throw new Error(error) })
-  } catch (e) {
-    console.error(e.message);
-    process.exit(1)
-  }
+  const args = getArgs();
+  processArgs(args)
+      .then(()=> process.exit())
+      .catch(() => { throw new Error(error) });
+} catch (e) {
+  console.error(e.message);
+  process.exit(1);
+}
