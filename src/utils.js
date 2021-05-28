@@ -120,7 +120,7 @@ export const listActiveApps = async (adminWebsocket) => {
  */
 export const dumpState = async (adminWebsocket, cellIdArg) => {
     console.log('cell Id Arg : ', cellIdArg)
-		if (!cellIdArg) throw new Error(`Error: No cell_id passed.`);
+		if (!cellIdArg) throw new Error(`Error: No cell_id passed.`)
     let cellId;
 
 		const index = parseInt(cellIdArg);
@@ -138,16 +138,18 @@ export const dumpState = async (adminWebsocket, cellIdArg) => {
     } else {
 			// Convert cellIdArg into array format to satisfy dumpState arg type
 			cellId = cellIdArg.split(',')
-			console.log('cellId : ', cellId)
 			if (Array.isArray(cellId)) {
-					cellId[0] = Buffer.from(cellId[0], 'base64');
-					cellId[1] = Buffer.from(cellId[1], 'base64');
+				cellId[0] = Buffer.from(cellId[0], 'base64');
+				cellId[1] = Buffer.from(cellId[1], 'base64');
 			} else {
-					return `Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]`;
+				return `Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]`;
 			}
     }
-
-    const stateDump = await adminWebsocket.dumpState({
+		
+		console.log('CellId in Buffer format : ', cellId)
+		if (cellId.length !== 2) throw new Error(`Error: cell_id is in improper format. Make sure both the dna and agent hash are passed as a single, non-spaced array.`)
+    
+		const stateDump = await adminWebsocket.dumpState({
         cell_id: cellId
     });
     // Replace all the buffers with byte64 representations
