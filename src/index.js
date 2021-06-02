@@ -39,10 +39,10 @@ export async function getArgs () {
       ]
     
   example
-    hc-state -s "['hC0kqcfqvJ8krBR0bNnPsmLtFiEiMOHM0fX+U8FW+ROc7P10tUdc','hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac'] 
+    hc-state s "['hC0kqcfqvJ8krBR0bNnPsmLtFiEiMOHM0fX+U8FW+ROc7P10tUdc','hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac'] 
     // arg is the CellIdBase64 as a continuous string (should not contain spaces)
     or 
-    hc-state -s 0 
+    hc-state s 0
     // arg is the numeric index of cell ID returned by ListCellIds
   `)
     .option('-p, --app-port <port>', 'assigns app port for outbound app-interface calls', 42233)
