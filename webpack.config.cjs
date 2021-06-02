@@ -1,21 +1,21 @@
-const path = require("path");
-const webpack = require("webpack");
+const path = require('path')
+const webpack = require('webpack')
 
 module.exports = {
   output: {
-    filename: "main.js",
-    path: path.resolve(__dirname, "dist"),
+    filename: 'main.js',
+    path: path.resolve(__dirname, 'dist')
 
   },
-  entry: ["./src/index.js"],
+  entry: ['./src/index.js'],
   module: {
     rules: [
-      { test: /\.js$/, include: /node_modules/, type: "javascript/auto" },
-    ],
+      { test: /\.js$/, include: /node_modules/, type: 'javascript/auto' }
+    ]
   },
   target: 'node',
-  mode: "development",
+  mode: 'development',
   plugins: [
-    new webpack.BannerPlugin({ banner: "#!/usr/bin/env node", raw: true }),
-  ],
-};
+    new webpack.BannerPlugin({ banner: '#!/usr/bin/env node', raw: true })
+  ]
+}
