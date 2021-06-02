@@ -46,13 +46,10 @@ const stringifyBuffRec = (obj) => {
  * @returns {AdminWebsocket}
  */
 export const getAdminWebsocket = async (adminPort) => {
-  console.log(`admin ws uri: ws://localhost:${adminPort}`)
-
   if (adminWebsocket) return adminWebsocket
 
-  console.log('Establishing connection to AdminWebsocket', AdminWebsocket.connect)
   adminWebsocket = await AdminWebsocket.connect(
-        `ws://localhost:${adminPort}`
+      `ws://localhost:${adminPort}`
   )
   console.log(`Successfully connected to admin interface on port ${adminPort}`)
   return adminWebsocket
@@ -65,7 +62,6 @@ export const getAdminWebsocket = async (adminPort) => {
 export const getAppWebsocket = async (appPort) => {
   if (appWebsocket) return appWebsocket
 
-  console.log('Establishing connection to AppWebsocket')
   appWebsocket = await AppWebsocket.connect(
       `ws://localhost:${appPort}`
   )
@@ -106,7 +102,7 @@ export const listActiveApps = async (adminWebsocket) => {
   try {
     result = await adminWebsocket.listActiveApps()
   } catch (e) {
-    return `Error: ${JSON.stringify(e)}`
+    throw new Error(`${JSON.stringify(e)}`)
   }
   return result
 }
@@ -118,7 +114,7 @@ export const listActiveApps = async (adminWebsocket) => {
  */
 export const dumpState = async (adminWebsocket, cellIdArg) => {
   console.log('cell Id Arg : ', cellIdArg)
-  if (!cellIdArg) throw new Error('Error: No cell_id passed.')
+  if (!cellIdArg) throw new Error('No cell_id passed.')
   let cellId
 
   const index = parseInt(cellIdArg)
@@ -140,12 +136,12 @@ export const dumpState = async (adminWebsocket, cellIdArg) => {
       cellId[0] = Buffer.from(cellId[0], 'base64')
       cellId[1] = Buffer.from(cellId[1], 'base64')
     } else {
-      return 'Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]'
+      throw new Error('Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]')
     }
   }
 
   console.log('CellId in Buffer format : ', cellId)
-  if (cellId.length !== 2) throw new Error('Error: cell_id is in improper format. Make sure both the dna and agent hash are passed as a single, non-spaced array.')
+  if (cellId.length !== 2) throw new Error('cell_id is in improper format. Make sure both the dna and agent hash are passed as a single, non-spaced array.')
 
   const stateDump = await adminWebsocket.dumpState({
     cell_id: cellId
@@ -161,7 +157,7 @@ export const dumpState = async (adminWebsocket, cellIdArg) => {
  * @returns string
 */
 export const appInfo = async (appWebsocket, installedAppId) => {
-  if (!installedAppId) throw new Error('Error: No installed_app_id passed.')
+  if (!installedAppId) throw new Error('No installed_app_id passed.')
   let result
   try {
     result = await appWebsocket.appInfo({ installed_app_id: installedAppId })

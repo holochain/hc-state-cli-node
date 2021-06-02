@@ -4,7 +4,7 @@
   "description": "CLI tool for querying holochain over admin port",
   "main": "./dist/main.js",
   "scripts": {
-    "build": "standardx && webpack --config webpack.config.cjs",
+    "build": "webpack --config webpack.config.cjs",
     "lint": "standardx --fix"
   },
   "repository": {

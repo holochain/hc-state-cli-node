@@ -105,7 +105,7 @@ export async function getArgs () {
 try {
   getArgs()
     .then(() => process.exit())
-    .catch(e => { throw new Error(e) })
+    .catch(e => console.error(e))
 } catch (e) {
   console.error(e.message)
   process.exit(1)
