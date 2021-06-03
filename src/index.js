@@ -1,24 +1,8 @@
-import { getAdminWebsocket, getAppWebsocket, listDnas, listCellIds, listActiveApps, dumpState, appInfo, zomeCall } from './utils'
+import { getAdminWebsocket, getAppWebsocket, getHoloHash, listDnas, listCellIds, listActiveApps, dumpState, installAppBundle, activateApp, appInfo, zomeCall } from './utils'
+import path from 'path'
 import { inspect } from 'util'
 const { version } = require('../package.json')
 const { Command } = require('commander')
-const blake = require('blakejs')
-
-const HOLO_HASH_AGENT_PREFIX = Buffer.from(new Uint8Array([0x84, 0x20, 0x24]).buffer)
-const HOLO_HASH_DNA_PREFIX = Buffer.from(new Uint8Array([0x84, 0x2d, 0x24]).buffer)
-
-// Generate holohash 4 byte (or u32) dht "location" - used for checksum and dht sharding
-function calc_dht_bytes (data) {
-  const digest = blake.blake2b(data, null, 16)
-  const dht_part = Buffer.from([digest[0], digest[1], digest[2], digest[3]])
-  for (const i of [4, 8, 12]) {
-    dht_part[0] ^= digest[i]
-    dht_part[1] ^= digest[i + 1]
-    dht_part[2] ^= digest[i + 2]
-    dht_part[3] ^= digest[i + 3]
-  }
-  return dht_part
-}
 
 const call_admin_port = async (async_fn, port, args) => {
   const argsLog = args ? args.toString() : 'none'
@@ -115,19 +99,80 @@ export async function getArgs () {
     })
 
   program
+    .command('installAppBundle <InstalledAppId> <AgentHash> <AppBundleSource>')
+    .alias('b')
+    .description('install provided happ bundle with given id and details: calls InstallAppBundle(installed_app_id, agent_key, source, membrane_proofs?, uid?) -> { installed_app_id, cell_data: [ { cell_id, cell_nick } ], status: { inactive: { reason: [Object] } } }')
+    .option('-m', '--membraneProof <membrane-proof>', 'provide membrane proof for app bundle install and runtime validation')
+    .option('-u', '--uid <uid>', 'provide uid for to designate app within a spedific hash-space ?? right??')
+    .action(async (InstalledAppId, AgentHash, AppBundleSource, { membraneProof, uid }) => {
+      console.log('InstalledAppId : ', InstalledAppId)
+      console.log('AgentHash : ', AgentHash)
+      console.log('AppBundleSource : ', AppBundleSource)
+      console.log('membraneProof : ', membraneProof)
+      console.log('uid : ', uid)
+      // const example_url =
+      // 'https://github.com/holochain/elemental-chat/releases/download/v0.2.0.alpha13/elemental-chat.happ'
+
+      // filepath example:
+      // '/bundles/elemental-chat.happ'
+
+      let bundleSource
+      const urlMatcher = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi
+      if (AppBundleSource.match(urlMatcher)) {
+        if (path.extname(AppBundleSource) !== '.happ') {
+          throw new Error('Invalid AppBundleSource URL.  Please ensure to provide the url address of your bundle\'s .happ file.')
+        }
+        bundleSource = AppBundleSource
+      } else {
+        try {
+          const isHappExt = path.extname(AppBundleSource) === '.happ'
+          if (!isHappExt) throw new Error('Invalid AppBundleSource file path.  Please ensure to provide the url address of your bundle\'s .happ file.')
+        } catch (error) {
+          throw new Error('Invalid AppBundleSource. The source must be either a file or url path to the .happ file.')
+        }
+        const bundlePath = path.join(__dirname, AppBundleSource)
+        bundleSource = bundlePath
+      }
+
+      const args = {
+        installed_app_id: InstalledAppId,
+        agent_key: getHoloHash('agent', AgentHash),
+        path: bundleSource,
+        membrane_proofs: membraneProof || {},
+        uid: uid || null
+      }
+
+      console.log('\nInstalling new app bundle with with args %s', inspect(args))
+
+      const result = await call_admin_port(installAppBundle, program.opts().adminPort, args)
+      console.log('Installed App Bundle:')
+      console.log(result)
+    })
+
+  program
+    .command('activateApp <InstalledAppId>')
+    .alias('o')
+    .description('activate provided   app bundle: calls activateApp(installed_app_id) -> void ??')
+    .action(async (installedAppId) => {
+      const result = await call_admin_port(activateApp, program.opts().adminPort, installedAppId)
+      console.log('Activated App ID:')
+      console.log(result)
+    })
+
+  program
     .command('appInfo <InstalledAppId>')
     .alias('i')
-    .description('print app info for app: calls appInfo(InstalledAppId) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean}')
+    .description('print app info for app: calls appInfo(installed_app_id) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean }')
     .action(async (installedAppId) => {
       const result = await call_app_port(appInfo, program.opts().appPort, installedAppId)
-      console.log('App Info for App:')
+      console.log('AppInfo Details for App:')
       console.log(result)
     })
 
   program
     .command('zomeCall <DnaHash> <AgentHash> <ZomeName> <ZomeFunction> <Payload>')
     .alias('z')
-    .description('call zome function for cell: calls callZome(cell_id, agent_pubkey,   zome_name, fn_name) -> ZomeCallResult: any')
+    .description('call zome function for cell: calls callZome(cell_id, zome_name, fn_name, payload, provenence) -> ZomeCallResult: any')
     .action(async (DnaHash, AgentHash, ZomeName, ZomeFunction, Payload) => {
       let payload = null
       function toJSONString (input) {
@@ -156,34 +201,6 @@ export async function getArgs () {
         payload = null
       }
 
-      const getHoloHash = (type, hash) => {
-        let holoHashPrefix, buf
-        if (type === 'agent') {
-          holoHashPrefix = HOLO_HASH_AGENT_PREFIX
-        } else if (type === 'dna') {
-          holoHashPrefix = HOLO_HASH_DNA_PREFIX
-        } else {
-          throw new Error('Failed to provide correct holohash type during hash buffer creation')
-        }
-
-        if (hash.indexOf('u') !== 0) {
-          buf = Buffer.from(hash, 'base64').slice(3, -4)
-        } else {
-          buf = Buffer.from(hash.slice(1), 'base64').slice(3, -4)
-        }
-
-        // catch and alert improper hashes prior to call
-        if (buf.length !== 32) {
-          throw new Error(`provided ${type} hash is an improper length`)
-        }
-
-        return Buffer.concat([
-          holoHashPrefix,
-          buf,
-          calc_dht_bytes(buf)
-        ])
-      }
-
       const args = {
         cell_id: [getHoloHash('dna', DnaHash), getHoloHash('agent', AgentHash)],
         zome_name: ZomeName,
@@ -205,7 +222,10 @@ export async function getArgs () {
 try {
   getArgs()
     .then(() => process.exit())
-    .catch(e => console.error(e))
+    .catch(e => {
+      console.error(e)
+      process.exit(1)
+    })
 } catch (e) {
   console.error(e.message)
   process.exit(1)
