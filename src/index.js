@@ -82,7 +82,6 @@ export async function getArgs () {
     .alias('s')
     .description('dump chain state for app: calls dumpState(CellIdBase64 | Index) -> [stateDump: any]')
     .action(async (CellIdBase64) => {
-      console.log('CellIdBase64 %s', CellIdBase64)
       const result = await call_admin_port(dumpState, program.opts().adminPort, CellIdBase64)
       console.log('State Dump for App:')
       console.log(result)
