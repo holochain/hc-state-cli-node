@@ -1,7 +1,6 @@
 import { getAdminWebsocket, getAppWebsocket, getHoloHash, listDnas, listCellIds, listActiveApps, dumpState, installAppBundle, activateApp, appInfo, zomeCall } from './utils'
 import path from 'path'
 import { inspect } from 'util'
-const { decode } = require('@msgpack/msgpack')
 const { version } = require('../package.json')
 const { Command } = require('commander')
 
@@ -116,6 +115,7 @@ export async function getArgs () {
       }
 
       let bundleSource
+      // eslint-disable-next-line no-useless-escape
       const urlMatcher = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi
       if (AppBundleSource.match(urlMatcher)) {
         if (path.extname(AppBundleSource) !== '.happ') {
@@ -137,7 +137,6 @@ export async function getArgs () {
         proof: Buffer.from(membraneProof, 'base64'),
         cell_nick: cellNick // 'elemental-chat'
       }
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>> membraneProofs ', membraneProofs)
 
       const args = {
         installed_app_id: InstalledAppId,

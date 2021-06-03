@@ -42,9 +42,9 @@ const stringifyBuffRec = (obj) => {
   return obj
 }
 
- const HOLO_HASH_AGENT_PREFIX = Buffer.from(new Uint8Array([0x84, 0x20, 0x24]).buffer)
- const HOLO_HASH_DNA_PREFIX = Buffer.from(new Uint8Array([0x84, 0x2d, 0x24]).buffer)
- /**
+const HOLO_HASH_AGENT_PREFIX = Buffer.from(new Uint8Array([0x84, 0x20, 0x24]).buffer)
+const HOLO_HASH_DNA_PREFIX = Buffer.from(new Uint8Array([0x84, 0x2d, 0x24]).buffer)
+/**
  * Generates holohash 4 byte (or u32) dht "location" - used for checksum and dht sharding
  * @returns {HoloHash}
  */
@@ -90,7 +90,6 @@ export const getHoloHash = (type, hash) => {
     calc_dht_bytes(buf)
   ])
 }
-
 
 /**
  * Creates and returns websocket connection to admin interface of Holochain
