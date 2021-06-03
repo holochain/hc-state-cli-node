@@ -152,11 +152,11 @@ export async function getArgs () {
   program
     .command('activateApp <InstalledAppId>')
     .alias('o')
-    .description('activate provided   app bundle: calls activateApp(installed_app_id) -> void ??')
+    .description('activate provided   app bundle: calls activateApp(installed_app_id) -> void')
     .action(async (installedAppId) => {
-      const result = await call_admin_port(activateApp, program.opts().adminPort, installedAppId)
-      console.log('Activated App ID:')
-      console.log(result)
+      // we don't display the returned  for this call as it returns void
+      await call_admin_port(activateApp, program.opts().adminPort, installedAppId)
+      console.log('Activated App with ID  :  %s ', installedAppId)
     })
 
   program

@@ -226,7 +226,7 @@ export const installAppBundle = async (adminWebsocket, args) => {
 /**
  * Shows activateApp for given app id
  * @param {string} installedAppId
- * @returns null ???
+ * @returns {void}
 */
 export const activateApp = async (adminWebsocket, installedAppId) => {
   if (!installedAppId) throw new Error('No installed_app_id passed to activateApp.')
@@ -236,8 +236,6 @@ export const activateApp = async (adminWebsocket, installedAppId) => {
   } catch (error) {
     console.error('Error when calling AppInfo: ', error)
   }
-
-  console.log('RESULT : ', result)
   return result
 }
 
