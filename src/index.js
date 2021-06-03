@@ -223,14 +223,9 @@ export async function getArgs () {
   await program.parseAsync(process.argv)
 }
 
-try {
-  getArgs()
-    .then(() => process.exit())
-    .catch(e => {
-      console.error(e)
-      process.exit(1)
-    })
-} catch (e) {
-  console.error(e.message)
-  process.exit(1)
-}
+getArgs()
+  .then(() => process.exit())
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })
