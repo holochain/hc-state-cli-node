@@ -1,7 +1,7 @@
-import { AdminWebsocket, AppWebsocket } from "@holochain/conductor-api";
+import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api'
 import { inspect } from 'util'
 
-let adminWebsocket, appWebsocket;
+let adminWebsocket, appWebsocket
 
 /**
  * Iterates recursively over deeply nested object values and converts each value that is Buffer
@@ -13,32 +13,32 @@ let adminWebsocket, appWebsocket;
  * @returns {Object}
  */
 const stringifyBuffRec = (obj) => {
-    const buffer_keys = {
-        'signature': true,
-        'header_address': true,
-        'author': true,
-        'prev_header': true,
-        'base_address': true,
-        'target_address': true,
-        'tag': true,
-        'entry_hash': true,
-        'entry': true,
-        'hash': true
-    };
+  const buffer_keys = {
+    signature: true,
+    header_address: true,
+    author: true,
+    prev_header: true,
+    base_address: true,
+    target_address: true,
+    tag: true,
+    entry_hash: true,
+    entry: true,
+    hash: true
+  }
 
-    if (Array.isArray(obj) || (typeof obj === 'object' && obj !== null)) {
-        for (const i in obj) {
-            if (obj.hasOwnProperty(i)) {
-                if (buffer_keys[i] && Array.isArray(obj[i])) {
-                    obj[i] = Buffer.from(obj[i]).toString('base64');
-                } else {
-                    obj[i] = stringifyBuffRec(obj[i]);
-                }
-            }
+  if (Array.isArray(obj) || (typeof obj === 'object' && obj !== null)) {
+    for (const i in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, i)) {
+        if (buffer_keys[i] && Array.isArray(obj[i])) {
+          obj[i] = Buffer.from(obj[i]).toString('base64')
+        } else {
+          obj[i] = stringifyBuffRec(obj[i])
         }
+      }
     }
+  }
 
-    return obj;
+  return obj
 }
 
 /**
@@ -46,31 +46,27 @@ const stringifyBuffRec = (obj) => {
  * @returns {AdminWebsocket}
  */
 export const getAdminWebsocket = async (adminPort) => {
-    console.log(`admin ws uri: ws://localhost:${adminPort}`)
+  if (adminWebsocket) return adminWebsocket
 
-    if (adminWebsocket) return adminWebsocket;
-
-    console.log('Establishing connection to AdminWebsocket', AdminWebsocket.connect);
-    adminWebsocket = await AdminWebsocket.connect(
-        `ws://localhost:${adminPort}`
-    );
-    console.log(`Successfully connected to admin interface on port ${adminPort}`);
-    return adminWebsocket;
+  adminWebsocket = await AdminWebsocket.connect(
+      `ws://localhost:${adminPort}`
+  )
+  console.log(`Successfully connected to admin interface on port ${adminPort}`)
+  return adminWebsocket
 }
 
 /**
  * Creates and returns websocket connection to app interface of Holochain
  * @returns {AppWebsocket}
  */
- export const getAppWebsocket = async (appPort) => {
-  if (appWebsocket) return appWebsocket;
+export const getAppWebsocket = async (appPort) => {
+  if (appWebsocket) return appWebsocket
 
-  console.log(`Establishing connection to AppWebsocket`);
   appWebsocket = await AppWebsocket.connect(
       `ws://localhost:${appPort}`
-  );
-  console.log(`Successfully connected to app interface on port ${appPort}`);
-  return appWebsocket;
+  )
+  console.log(`Successfully connected to app interface on port ${appPort}`)
+  return appWebsocket
 }
 
 /**
@@ -78,12 +74,11 @@ export const getAdminWebsocket = async (adminPort) => {
  * @returns {Array}
  */
 export const listDnas = async (adminWebsocket) => {
-    let result = await adminWebsocket.listDnas();
+  let result = await adminWebsocket.listDnas()
 
-    if (Array.isArray(result))
-        result = result.map(dna => dna.toString('base64'));
+  if (Array.isArray(result)) { result = result.map(dna => dna.toString('base64')) }
 
-    return result;
+  return result
 }
 
 /**
@@ -91,12 +86,11 @@ export const listDnas = async (adminWebsocket) => {
  * @returns {Array}
  */
 export const listCellIds = async (adminWebsocket) => {
-    let result = await adminWebsocket.listCellIds();
+  let result = await adminWebsocket.listCellIds()
 
-    if (Array.isArray(result))
-        result = result.map(cell_id => [cell_id[0].toString('base64'), cell_id[1].toString('base64')]);
+  if (Array.isArray(result)) { result = result.map(cell_id => [cell_id[0].toString('base64'), cell_id[1].toString('base64')]) }
 
-    return result;
+  return result
 }
 
 /**
@@ -104,13 +98,13 @@ export const listCellIds = async (adminWebsocket) => {
  * @returns {Array}
  */
 export const listActiveApps = async (adminWebsocket) => {
-    let result
-    try {
-      result = await adminWebsocket.listActiveApps();
-    } catch (e) {
-      return `Error: ${JSON.stringify(e)}`
-    }
-    return result
+  let result
+  try {
+    result = await adminWebsocket.listActiveApps()
+  } catch (e) {
+    throw new Error(`${JSON.stringify(e)}`)
+  }
+  return result
 }
 
 /**
@@ -119,42 +113,42 @@ export const listActiveApps = async (adminWebsocket) => {
  * @returns string
  */
 export const dumpState = async (adminWebsocket, cellIdArg) => {
-    console.log('cell Id Arg : ', cellIdArg)
-		if (!cellIdArg) throw new Error(`Error: No cell_id passed.`)
-    let cellId;
+  console.log('cell Id Arg : ', cellIdArg)
+  if (!cellIdArg) throw new Error('No cell_id passed.')
+  let cellId
 
-		const index = parseInt(cellIdArg);
-    if (`${index}` == cellIdArg) {
-        // arg is a index so get cell ID list from conductor
-        let result = await adminWebsocket.listCellIds();
-        if (Array.isArray(result)) {
-            if (index >= result.length) {
-                return `CellId index (zero based) provided was ${index}, but there are only ${result.length} cell(s)`;
-            }
-            cellId = result[index];
-        } else {
-            return `Expected array from listCellIds() got: ${result}`;
-        }
+  const index = parseInt(cellIdArg)
+  if (`${index}` === cellIdArg) {
+    // arg is a index so get cell ID list from conductor
+    const result = await adminWebsocket.listCellIds()
+    if (Array.isArray(result)) {
+      if (index >= result.length) {
+        return `CellId index (zero based) provided was ${index}, but there are only ${result.length} cell(s)`
+      }
+      cellId = result[index]
     } else {
-			// Convert cellIdArg into array format to satisfy dumpState arg type
-			cellId = cellIdArg.split(',')
-			if (Array.isArray(cellId)) {
-				cellId[0] = Buffer.from(cellId[0], 'base64');
-				cellId[1] = Buffer.from(cellId[1], 'base64');
-			} else {
-				return `Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]`;
-			}
+      return `Expected array from listCellIds() got: ${result}`
     }
-		
-		console.log('CellId in Buffer format : ', cellId)
-		if (cellId.length !== 2) throw new Error(`Error: cell_id is in improper format. Make sure both the dna and agent hash are passed as a single, non-spaced array.`)
-    
-		const stateDump = await adminWebsocket.dumpState({
-        cell_id: cellId
-    });
-    // Replace all the buffers with byte64 representations
-    let result = stringifyBuffRec(stateDump);
-    return JSON.stringify(result, null, 4)+`\n\nTotal Elements in Dump: ${stateDump.length}`;
+  } else {
+    // Convert cellIdArg into array format to satisfy dumpState arg type
+    cellId = cellIdArg.split(',')
+    if (Array.isArray(cellId)) {
+      cellId[0] = Buffer.from(cellId[0], 'base64')
+      cellId[1] = Buffer.from(cellId[1], 'base64')
+    } else {
+      throw new Error('Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]')
+    }
+  }
+
+  console.log('CellId in Buffer format : ', cellId)
+  if (cellId.length !== 2) throw new Error('cell_id is in improper format. Make sure both the dna and agent hash are passed as a single, non-spaced array.')
+
+  const stateDump = await adminWebsocket.dumpState({
+    cell_id: cellId
+  })
+  // Replace all the buffers with byte64 representations
+  const result = stringifyBuffRec(stateDump)
+  return JSON.stringify(result, null, 4) + `\n\nTotal Elements in Dump: ${stateDump.length}`
 }
 
 /**
@@ -162,14 +156,14 @@ export const dumpState = async (adminWebsocket, cellIdArg) => {
  * @param { string } installedAppId
  * @returns string
 */
- export const appInfo = async (appWebsocket, installedAppId) => {
-  if (!installedAppId) throw new Error(`Error: No installed_app_id passed.`);
-	let result;
-	try {
-    result = await appWebsocket.appInfo({ installed_app_id: installedAppId });
-	} catch (error) {
-		console.error('Error when calling AppInfo: ', error)
-	}
+export const appInfo = async (appWebsocket, installedAppId) => {
+  if (!installedAppId) throw new Error('No installed_app_id passed.')
+  let result
+  try {
+    result = await appWebsocket.appInfo({ installed_app_id: installedAppId })
+  } catch (error) {
+    console.error('Error when calling AppInfo: ', error)
+  }
 
   if (!result.cell_data) return `No cell data found for installed_app_id : ${installedAppId}`
 
