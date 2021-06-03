@@ -196,4 +196,5 @@ export const zomeCall = async (appWebsocket, args) => {
   } catch (error) {
     return error
   }
+  return result
 }

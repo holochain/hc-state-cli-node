@@ -1,12 +1,26 @@
 import { getAdminWebsocket, getAppWebsocket, listDnas, listCellIds, listActiveApps, dumpState, appInfo, zomeCall } from './utils'
 import { inspect } from 'util'
-// const { Codec, HHT } = require('@holo-host/cryptolib');
-import('@holo-host/cryptolib').then(({ Codec, HHT }) => {
-  global.Codec = Codec
-  global.HHT = HHT
-})
 const { version } = require('../package.json')
 const { Command } = require('commander')
+const blake = require('blakejs')
+
+const HOLO_HASH_AGENT_PREFIX = Buffer.from(new Uint8Array([0x84, 0x20, 0x24]).buffer)
+const HOLO_HASH_DNA_PREFIX = Buffer.from(new Uint8Array([0x84, 0x2d, 0x24]).buffer)
+
+// Generate holohash 4 byte (or u32) dht "location" - used for checksum and dht sharding
+function calc_dht_bytes (data) {
+  const digest = blake.blake2b(data, null, 16)
+  const dht_part = Buffer.from([digest[0], digest[1], digest[2], digest[3]])
+
+  for (const i of [4, 8, 12]) {
+    dht_part[0] ^= digest[i]
+    dht_part[1] ^= digest[i + 1]
+    dht_part[2] ^= digest[i + 2]
+    dht_part[3] ^= digest[i + 3]
+  }
+
+  return dht_part
+}
 
 const call_admin_port = async (async_fn, port, args) => {
   const argsLog = args ? args.toString() : 'none'
@@ -113,10 +127,10 @@ export async function getArgs () {
     })
 
   program
-    .command('zomeCall <AgentHash> <DnaHash> <ZomeName> <ZomeFunction> <Payload>')
+    .command('zomeCall <DnaHash> <AgentHash> <ZomeName> <ZomeFunction> <Payload>')
     .alias('z')
     .description('call zome function for cell: calls callZome(cell_id, agent_pubkey, zome_name, fn_name) -> ZomeCallResult: any')
-    .action(async (AgentHash, DnaHash, ZomeName, ZomeFunction, Payload) => {
+    .action(async (DnaHash, AgentHash, ZomeName, ZomeFunction, Payload) => {
       let payload
       if (Payload && Object.keys(Payload) >= 1) {
       // const cleanedPayload = Payload.match(/{[^}]+}/).toString();
@@ -124,8 +138,9 @@ export async function getArgs () {
       // console.log('formattedPayload : ', formattedPayload)
         try {
           payload = JSON.parse(Payload)
+          console.log('JSON.parse(formattedPayload) : ', payload)
           // payload = JSON.parse(formattedPayload);
-          console.log('JSON.parse(formattedPayload) : ', JSON.parse(formattedPayload))
+          // console.log('JSON.parse(formattedPayload) : ', JSON.parse(formattedPayload))
         } catch (error) {
           throw new Error('ZomeCall Payload was not provided as a JSON string.')
         }
@@ -134,18 +149,28 @@ export async function getArgs () {
         payload = null
       }
 
-      // const dnaBuffer = DnaHash.indexOf('u') === 0 ?  Codec.HoloHash.holoHashFromBuffer(HHT.DNA, Buffer.from(DnaHash.slice(1), "base64").slice(3, -4)) : Buffer.from(DnaHash, "base64")
-      // const agentBuffer = AgentHash.indexOf('u') === 0 ? Codec.HoloHash.holoHashFromBuffer(HHT.DNA, Buffer.from(AgentHash.slice(1), "base64").slice(3, -4)) : Buffer.from(AgentHash, "base64")
+      const getHoloHash = (holoHashPrefix, buf) => {
+        return Buffer.concat([
+          holoHashPrefix,
+          buf,
+          calc_dht_bytes(buf)
+        ])
+      }
+      const dnaBuffer = (DnaHash.indexOf('u') === 0 && Buffer.from(DnaHash, 'base64').length === 39) ? getHoloHash(HOLO_HASH_DNA_PREFIX, Buffer.from(DnaHash.slice(1), 'base64').slice(3, -4)) : Buffer.from(DnaHash, 'base64')
+      const agentBuffer = (AgentHash.indexOf('u') === 0 && Buffer.from(AgentHash, 'base64').length === 39) ? getHoloHash(HOLO_HASH_AGENT_PREFIX, Buffer.from(AgentHash.slice(1), 'base64').slice(3, -4)) : Buffer.from(AgentHash, 'base64')
 
-      const dnaBuffer = Buffer.from(DnaHash, 'base64')
-      const agentBuffer = Buffer.from(AgentHash, 'base64')
+      console.log('DnaHash ', DnaHash)
+      console.log('AgentHash ', AgentHash)
+
+      console.log('????????????? ', dnaBuffer.length)
+      console.log('????????????? ', agentBuffer.length)
 
       const args = {
         cell_id: [dnaBuffer, agentBuffer],
         zome_name: ZomeName,
         fn_name: ZomeFunction,
-        payload,
-        provenance: AgentHash
+        payload: {},
+        provenance: agentBuffer
       }
 
       console.log('Calling zome function with args %s', inspect(args))
