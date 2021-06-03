@@ -1,6 +1,6 @@
 {
   "name": "hc-state",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CLI tool for querying holochain over admin port",
   "main": "./dist/main.js",
   "scripts": {
