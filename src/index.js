@@ -1,6 +1,7 @@
 import { getAdminWebsocket, getAppWebsocket, getHoloHash, listDnas, listCellIds, listActiveApps, dumpState, installAppBundle, activateApp, appInfo, zomeCall } from './utils'
 import path from 'path'
 import { inspect } from 'util'
+const { decode } = require('@msgpack/msgpack')
 const { version } = require('../package.json')
 const { Command } = require('commander')
 
@@ -101,20 +102,18 @@ export async function getArgs () {
   program
     .command('installAppBundle <InstalledAppId> <AgentHash> <AppBundleSource>')
     .alias('b')
+    .option('-e --membraneProof <membraneProof>', 'provide membrane proof for app bundle install and runtime validation - should be paired with --cellNick')
+    .option('-n --cellNick <cellNick>', 'provide cell nick - should be paired with --membraneProof')
+    .option('-u --uid <uid>', 'provide uid to happ')
     .description('install provided happ bundle with given id and details: calls InstallAppBundle(installed_app_id, agent_key, source, membrane_proofs?, uid?) -> { installed_app_id, cell_data: [ { cell_id, cell_nick } ], status: { inactive: { reason: [Object] } } }')
-    .option('-m', '--membraneProof <membrane-proof>', 'provide membrane proof for app bundle install and runtime validation')
-    .option('-u', '--uid <uid>', 'provide uid for to designate app within a spedific hash-space ?? right??')
-    .action(async (InstalledAppId, AgentHash, AppBundleSource, { membraneProof, uid }) => {
-      console.log('InstalledAppId : ', InstalledAppId)
-      console.log('AgentHash : ', AgentHash)
-      console.log('AppBundleSource : ', AppBundleSource)
-      console.log('membraneProof : ', membraneProof)
-      console.log('uid : ', uid)
-      // const example_url =
-      // 'https://github.com/holochain/elemental-chat/releases/download/v0.2.0.alpha13/elemental-chat.happ'
+    .action(async (InstalledAppId, AgentHash, AppBundleSource, { membraneProof, cellNick, uid }) => {
+      // const example_filepath = '/bundles/elemental-chat.happ'
+      // const example_url = 'https://github.com/holochain/elemental-chat/releases/download/v0.2.0.alpha13/elemental-chat.happ'
 
-      // filepath example:
-      // '/bundles/elemental-chat.happ'
+      // throw error if one, but now both, of the membraneProof and CellNick are present - both are needed to form the membrane_proofs object
+      if (!membraneProof ^ !cellNick) {
+        throw new Error('When installing a happ with membrane proof, both the --membraneProof and --cellNick options are required.')
+      }
 
       let bundleSource
       const urlMatcher = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi
@@ -134,11 +133,17 @@ export async function getArgs () {
         bundleSource = bundlePath
       }
 
+      const membraneProofs = {
+        proof: Buffer.from(membraneProof, 'base64'),
+        cell_nick: cellNick // 'elemental-chat'
+      }
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>> membraneProofs ', membraneProofs)
+
       const args = {
         installed_app_id: InstalledAppId,
         agent_key: getHoloHash('agent', AgentHash),
         path: bundleSource,
-        membrane_proofs: membraneProof || {},
+        membrane_proofs: membraneProof ? membraneProofs : {},
         uid: uid || null
       }
 
