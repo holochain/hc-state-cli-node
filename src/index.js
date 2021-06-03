@@ -1,12 +1,12 @@
-import { getAdminWebsocket, getAppWebsocket, listDnas, listCellIds, listActiveApps, dumpState, appInfo, zomeCall } from "./utils";
+import { getAdminWebsocket, getAppWebsocket, listDnas, listCellIds, listActiveApps, dumpState, appInfo, zomeCall } from './utils'
 import { inspect } from 'util'
 // const { Codec, HHT } = require('@holo-host/cryptolib');
-import('@holo-host/cryptolib').then(({ Codec, HHT  }) => {
-  global.Codec = Codec 
+import('@holo-host/cryptolib').then(({ Codec, HHT }) => {
+  global.Codec = Codec
   global.HHT = HHT
 })
-const { version } = require('../package.json');
-const { Command } = require('commander');
+const { version } = require('../package.json')
+const { Command } = require('commander')
 
 const call_admin_port = async (async_fn, port, args) => {
   const argsLog = args ? args.toString() : 'none'
@@ -105,57 +105,57 @@ export async function getArgs () {
   program
     .command('appInfo <InstalledAppId>')
     .alias('i')
-    .description("print app info for app: calls appInfo(InstalledAppId) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean}")
+    .description('print app info for app: calls appInfo(InstalledAppId) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean}')
     .action(async (installedAppId) => {
-      const result = await call_app_port(appInfo, program.opts().appPort, installedAppId);
-      console.log(`App Info for App:`);
-      console.log(result);
+      const result = await call_app_port(appInfo, program.opts().appPort, installedAppId)
+      console.log('App Info for App:')
+      console.log(result)
     })
 
   program
-    .command("zomeCall <AgentHash> <DnaHash> <ZomeName> <ZomeFunction> <Payload>")
+    .command('zomeCall <AgentHash> <DnaHash> <ZomeName> <ZomeFunction> <Payload>')
     .alias('z')
-    .description("call zome function for cell: calls callZome(cell_id, agent_pubkey, zome_name, fn_name) -> ZomeCallResult: any")
+    .description('call zome function for cell: calls callZome(cell_id, agent_pubkey, zome_name, fn_name) -> ZomeCallResult: any')
     .action(async (AgentHash, DnaHash, ZomeName, ZomeFunction, Payload) => {
-    let payload
-    if (Payload && Object.keys(Payload) >= 1) {
-      // const cleanedPayload = Payload.match(/{[^}]+}/).toString();    
+      let payload
+      if (Payload && Object.keys(Payload) >= 1) {
+      // const cleanedPayload = Payload.match(/{[^}]+}/).toString();
       // const formattedPayload = cleanedPayload.replace(/([a-zA-Z]+):/g,'"$1":');
       // console.log('formattedPayload : ', formattedPayload)
-      try {
-        payload = JSON.parse(Payload)
-        // payload = JSON.parse(formattedPayload);
-        console.log('JSON.parse(formattedPayload) : ', JSON.parse(formattedPayload))
-      } catch (error) {
-        throw new Error('ZomeCall Payload was not provided as a JSON string.')
+        try {
+          payload = JSON.parse(Payload)
+          // payload = JSON.parse(formattedPayload);
+          console.log('JSON.parse(formattedPayload) : ', JSON.parse(formattedPayload))
+        } catch (error) {
+          throw new Error('ZomeCall Payload was not provided as a JSON string.')
+        }
+      } else {
+        console.warn('No ZomeCall Payload provided, will pass zome call payload as null.')
+        payload = null
       }
-    } else {
-      console.warn('No ZomeCall Payload provided, will pass zome call payload as null.')
-      payload = null
-    }
 
-    // const dnaBuffer = DnaHash.indexOf('u') === 0 ?  Codec.HoloHash.holoHashFromBuffer(HHT.DNA, Buffer.from(DnaHash.slice(1), "base64").slice(3, -4)) : Buffer.from(DnaHash, "base64")
-    // const agentBuffer = AgentHash.indexOf('u') === 0 ? Codec.HoloHash.holoHashFromBuffer(HHT.DNA, Buffer.from(AgentHash.slice(1), "base64").slice(3, -4)) : Buffer.from(AgentHash, "base64")
+      // const dnaBuffer = DnaHash.indexOf('u') === 0 ?  Codec.HoloHash.holoHashFromBuffer(HHT.DNA, Buffer.from(DnaHash.slice(1), "base64").slice(3, -4)) : Buffer.from(DnaHash, "base64")
+      // const agentBuffer = AgentHash.indexOf('u') === 0 ? Codec.HoloHash.holoHashFromBuffer(HHT.DNA, Buffer.from(AgentHash.slice(1), "base64").slice(3, -4)) : Buffer.from(AgentHash, "base64")
 
-    const dnaBuffer = Buffer.from(DnaHash, "base64")
-    const agentBuffer = Buffer.from(AgentHash, "base64")
+      const dnaBuffer = Buffer.from(DnaHash, 'base64')
+      const agentBuffer = Buffer.from(AgentHash, 'base64')
 
-    const args = {
-      cell_id: [ dnaBuffer, agentBuffer ],
-      zome_name: ZomeName,
-      fn_name: ZomeFunction,
-      payload,
-      provenance: AgentHash
-    }
-    
-    console.log("Calling zome function with args %s", inspect(args) );
+      const args = {
+        cell_id: [dnaBuffer, agentBuffer],
+        zome_name: ZomeName,
+        fn_name: ZomeFunction,
+        payload,
+        provenance: AgentHash
+      }
 
-    const result = await call_app_port(zomeCall, program.opts().appPort, args);
-      console.log(`Zome Call Result :`);
-      console.log(result);
+      console.log('Calling zome function with args %s', inspect(args))
+
+      const result = await call_app_port(zomeCall, program.opts().appPort, args)
+      console.log('Zome Call Result :')
+      console.log(result)
     })
-    
-  await program.parseAsync( process.argv );
+
+  await program.parseAsync(process.argv)
 }
 
 try {

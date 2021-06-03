@@ -183,18 +183,17 @@ export const appInfo = async (appWebsocket, installedAppId) => {
   }
 }
 
-
 /**
  * Call callZome for given cell (with params)
  * @param { obj } installedAppId
  * @returns ZomeCallResult : any
 */
 export const zomeCall = async (appWebsocket, args) => {
-    if (!args) throw new Error(`Error: No args provided for callZome.`);
-	let result;
-	try {
-    result = await appWebsocket.callZome(args);
-	} catch (error) {
+  if (!args) throw new Error('Error: No args provided for callZome.')
+  let result
+  try {
+    result = await appWebsocket.callZome(args)
+  } catch (error) {
     return error
-	}
+  }
 }
