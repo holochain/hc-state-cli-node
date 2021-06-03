@@ -147,7 +147,7 @@ export async function getArgs () {
           payload = JSON.parse(toJSONString(Payload))
           console.log('final call payload', payload)
         } catch (error) {
-          throw new Error('ZomeCall Payload was not provided in format convertible to JSON string.  \nNB: Please be sure your string values do not include a colon followed by a space as this will cause an error in the RegEx evaluation.')
+          throw new Error('ZomeCall Payload was not provided in format convertible to JSON string.  \nWARNING: Please be sure your string values do not include a colon followed by a space as this will cause an error in the RegEx evaluation.')
         }
       }
 
