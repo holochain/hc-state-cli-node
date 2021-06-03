@@ -4,7 +4,8 @@
   "description": "CLI tool for querying holochain over admin port",
   "main": "./dist/main.js",
   "scripts": {
-    "build": "webpack --config webpack.config.cjs"
+    "build": "webpack --config webpack.config.cjs",
+    "lint": "standardx --fix"
   },
   "repository": {
     "type": "git",
@@ -13,12 +14,14 @@
   "author": "peeech",
   "license": "MIT",
   "dependencies": {
-    "@holochain/conductor-api": "0.0.1-dev.13"
+    "@holochain/conductor-api": "0.0.4",
+    "commander": "^6.2.0"
   },
   "devDependencies": {
-    "webpack": "^4.44.2",
-    "webpack-cli": "^4.1.0",
     "bufferutil": "^4.0.1",
-    "utf-8-validate": "^5.0.2"
+    "standardx": "^7.0.0",
+    "utf-8-validate": "^5.0.2",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^4.1.0"
   }
 }
