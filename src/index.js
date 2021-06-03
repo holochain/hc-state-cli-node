@@ -11,14 +11,12 @@ const HOLO_HASH_DNA_PREFIX = Buffer.from(new Uint8Array([0x84, 0x2d, 0x24]).buff
 function calc_dht_bytes (data) {
   const digest = blake.blake2b(data, null, 16)
   const dht_part = Buffer.from([digest[0], digest[1], digest[2], digest[3]])
-
   for (const i of [4, 8, 12]) {
     dht_part[0] ^= digest[i]
     dht_part[1] ^= digest[i + 1]
     dht_part[2] ^= digest[i + 2]
     dht_part[3] ^= digest[i + 3]
   }
-
   return dht_part
 }
 
@@ -129,54 +127,75 @@ export async function getArgs () {
   program
     .command('zomeCall <DnaHash> <AgentHash> <ZomeName> <ZomeFunction> <Payload>')
     .alias('z')
-    .description('call zome function for cell: calls callZome(cell_id, agent_pubkey, zome_name, fn_name) -> ZomeCallResult: any')
+    .description('call zome function for cell: calls callZome(cell_id, agent_pubkey,   zome_name, fn_name) -> ZomeCallResult: any')
     .action(async (DnaHash, AgentHash, ZomeName, ZomeFunction, Payload) => {
-      let payload
-      if (Payload && Object.keys(Payload) >= 1) {
-      // const cleanedPayload = Payload.match(/{[^}]+}/).toString();
-      // const formattedPayload = cleanedPayload.replace(/([a-zA-Z]+):/g,'"$1":');
-      // console.log('formattedPayload : ', formattedPayload)
-        try {
-          payload = JSON.parse(Payload)
-          console.log('JSON.parse(formattedPayload) : ', payload)
-          // payload = JSON.parse(formattedPayload);
-          // console.log('JSON.parse(formattedPayload) : ', JSON.parse(formattedPayload))
-        } catch (error) {
-          throw new Error('ZomeCall Payload was not provided as a JSON string.')
+      let payload = null
+      function toJSONString (input) {
+        const keyMatcher = '([^",{}\\s]+?)'
+        const valMatcher = '(?<=: )(.*?)(?=,|}| })'
+        const matcher = new RegExp(`${keyMatcher}\\s*:\\s*${valMatcher}`, 'g')
+        const parser = (_, key, value) => {
+          console.log('key ', key)
+          console.log('value ', value)
+          return `"${key.trim()}":"${value.trim()}"`
         }
-      } else {
+        return input.replace(matcher, parser)
+      }
+
+      if (Payload !== 'null') {
+        try {
+          payload = JSON.parse(toJSONString(Payload))
+          console.log('final call payload', payload)
+        } catch (error) {
+          throw new Error('ZomeCall Payload was not provided in format convertible to JSON string.  \nNB: Please be sure your string values do not include a colon followed by a space as this will cause an error in the RegEx evaluation.')
+        }
+      }
+
+      if (!payload || Object.keys(payload).length < 1) {
         console.warn('No ZomeCall Payload provided, will pass zome call payload as null.')
         payload = null
       }
 
-      const getHoloHash = (holoHashPrefix, buf) => {
+      const getHoloHash = (type, hash) => {
+        let holoHashPrefix, buf
+        if (type === 'agent') {
+          holoHashPrefix = HOLO_HASH_AGENT_PREFIX
+        } else if (type === 'dna') {
+          holoHashPrefix = HOLO_HASH_DNA_PREFIX
+        } else {
+          throw new Error('Failed to provide correct holohash type during hash buffer creation')
+        }
+
+        if (hash.indexOf('u') !== 0) {
+          buf = Buffer.from(hash, 'base64').slice(3, -4)
+        } else {
+          buf = Buffer.from(hash.slice(1), 'base64').slice(3, -4)
+        }
+
+        // catch and alert improper hashes prior to call
+        if (buf.length !== 32) {
+          throw new Error(`provided ${type} hash is an improper length`)
+        }
+
         return Buffer.concat([
           holoHashPrefix,
           buf,
           calc_dht_bytes(buf)
         ])
       }
-      const dnaBuffer = (DnaHash.indexOf('u') === 0 && Buffer.from(DnaHash, 'base64').length === 39) ? getHoloHash(HOLO_HASH_DNA_PREFIX, Buffer.from(DnaHash.slice(1), 'base64').slice(3, -4)) : Buffer.from(DnaHash, 'base64')
-      const agentBuffer = (AgentHash.indexOf('u') === 0 && Buffer.from(AgentHash, 'base64').length === 39) ? getHoloHash(HOLO_HASH_AGENT_PREFIX, Buffer.from(AgentHash.slice(1), 'base64').slice(3, -4)) : Buffer.from(AgentHash, 'base64')
-
-      console.log('DnaHash ', DnaHash)
-      console.log('AgentHash ', AgentHash)
-
-      console.log('????????????? ', dnaBuffer.length)
-      console.log('????????????? ', agentBuffer.length)
 
       const args = {
-        cell_id: [dnaBuffer, agentBuffer],
+        cell_id: [getHoloHash('dna', DnaHash), getHoloHash('agent', AgentHash)],
         zome_name: ZomeName,
         fn_name: ZomeFunction,
-        payload: {},
-        provenance: agentBuffer
+        payload,
+        provenance: getHoloHash('agent', AgentHash)
       }
 
-      console.log('Calling zome function with args %s', inspect(args))
+      console.log('\nCalling %s/%s with args %s', ZomeName, ZomeFunction, inspect(args))
 
       const result = await call_app_port(zomeCall, program.opts().appPort, args)
-      console.log('Zome Call Result :')
+      console.log('\nZome Call Result :')
       console.log(result)
     })
 
