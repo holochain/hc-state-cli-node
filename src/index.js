@@ -126,8 +126,11 @@ export async function getArgs () {
       payload = null
     }
 
-    const dnaBuffer = DnaHash.indexOf('u') === 0 ?  Codec.HoloHash.holoHashFromBuffer(HHT.DNA, Buffer.from(DnaHash.slice(1), "base64").slice(3, -4)) : Buffer.from(DnaHash, "base64")
-    const agentBuffer = AgentHash.indexOf('u') === 0 ? Codec.HoloHash.holoHashFromBuffer(HHT.DNA, Buffer.from(AgentHash.slice(1), "base64").slice(3, -4)) : Buffer.from(AgentHash, "base64")
+    // const dnaBuffer = DnaHash.indexOf('u') === 0 ?  Codec.HoloHash.holoHashFromBuffer(HHT.DNA, Buffer.from(DnaHash.slice(1), "base64").slice(3, -4)) : Buffer.from(DnaHash, "base64")
+    // const agentBuffer = AgentHash.indexOf('u') === 0 ? Codec.HoloHash.holoHashFromBuffer(HHT.DNA, Buffer.from(AgentHash.slice(1), "base64").slice(3, -4)) : Buffer.from(AgentHash, "base64")
+
+    const dnaBuffer = Buffer.from(DnaHash, "base64")
+    const agentBuffer = Buffer.from(AgentHash, "base64")
 
     const args = {
       cell_id: [ dnaBuffer, agentBuffer ],
