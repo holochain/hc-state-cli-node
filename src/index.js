@@ -78,10 +78,19 @@ export async function getArgs () {
     })
 
   program
-    .command('stateDump <CellIdBase64 | Index>')
+    .command('stateDump <CellIdBase64>')
     .alias('s')
-    .description('dump chain state for app: calls dumpState(CellIdBase64 | Index) -> [stateDump: any]')
+    .description('dump chain state for app: calls dumpState(CellIdBase64) -> [stateDump: any]')
     .action(async (CellIdBase64) => {
+      if (/\\/.test(CellIdBase64)) {
+        CellIdBase64 = CellIdBase64.replace(/\\/g, '')
+          .replace(',n', ',')
+          .replace("'n'", "'")
+          .replace('[n', '[')
+          .replace(']n', ']')
+          .replace(/''/g, "'")
+      }
+      CellIdBase64.replace(/ +/g, '').trim()
       const result = await call_admin_port(dumpState, program.opts().adminPort, CellIdBase64)
       console.log('State Dump for App:')
       console.log(result)

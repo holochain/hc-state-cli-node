@@ -142,10 +142,15 @@ export const dumpState = async (adminWebsocket, cellIdArg) => {
 
   console.log('CellId in Buffer format : ', cellId)
   if (cellId.length !== 2) throw new Error('cell_id is in improper format. Make sure both the dna and agent hash are passed as a single, non-spaced array.')
-
-  const stateDump = await adminWebsocket.dumpState({
-    cell_id: cellId
-  })
+  else if (cellId[0].length !== 39 || cellId[1].length !== 39) throw new Error('cell_id contains a hash of improper length. Make sure both the dna and agent hash are passed as a single, non-spaced array.')
+  let stateDump
+  try {
+    stateDump = await adminWebsocket.dumpState({
+      cell_id: cellId
+    })
+  } catch (e) {
+    throw new Error(`${JSON.stringify(e)}`)
+  }
   // Replace all the buffers with byte64 representations
   const result = stringifyBuffRec(stateDump)
   return JSON.stringify(result, null, 4) + `\n\nTotal Elements in Dump: ${stateDump.length}`
