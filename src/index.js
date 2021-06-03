@@ -7,7 +7,6 @@ const call_admin_port = async (async_fn, port, args) => {
   try {
     console.log('Invoking call to Admin-Interface on port (%s) with args (%s)', port, argsLog)
     const adminWebsocket = await getAdminWebsocket(port)
-    console.log('admin ws : ', adminWebsocket)
     return await async_fn(adminWebsocket, args)
   } catch (error) {
     throw new Error(error)
