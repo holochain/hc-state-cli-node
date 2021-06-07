@@ -131,8 +131,7 @@ export async function getArgs () {
       }
 
       const membraneProofs = {
-        proof: Buffer.from(membraneProof, 'base64'),
-        cell_nick: cellNick // 'elemental-chat'
+        [[cell_nick]]: Buffer.from(membraneProof, 'base64'),      
       }
 
       const args = {
