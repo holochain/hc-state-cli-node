@@ -2,6 +2,9 @@ const path = require('path')
 const webpack = require('webpack')
 
 module.exports = {
+  node: {
+    __dirname: false
+  },
   entry: ['./src/index.js'],
   output: {
     filename: 'main.js',

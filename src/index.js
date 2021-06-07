@@ -126,13 +126,16 @@ export async function getArgs () {
         } catch (error) {
           throw new Error('Invalid AppBundleSource. The source must be either a file or url path to the .happ file.')
         }
-        const bundlePath = path.join(__dirname, AppBundleSource)
+
+        console.log('__dirname', __dirname)
+
+        // note: __dirname is configured to the 'dist' folder, not project root
+        const bundlePath = path.join(__dirname, '../', AppBundleSource)
         bundleSource = bundlePath
       }
 
       const membraneProofs = {
-        proof: Buffer.from(membraneProof, 'base64'),
-        cell_nick: cellNick // 'elemental-chat'
+        [cellNick]: Buffer.from(membraneProof, 'base64')
       }
 
       const args = {
