@@ -183,8 +183,6 @@ export async function getArgs () {
         const valMatcher = '(?<=: )(.*?)(?=,|}| })'
         const matcher = new RegExp(`${keyMatcher}\\s*:\\s*${valMatcher}`, 'g')
         const parser = (_, key, value) => {
-          console.log('key ', key)
-          console.log('value ', value)
           return `"${key.trim()}":"${value.trim()}"`
         }
         return input.replace(matcher, parser)

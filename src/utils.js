@@ -50,7 +50,6 @@ const stringifyBuffRec = (obj) => {
  * @returns {filePath}
  */
 export const downloadFile = async (downloadUrl) => {
-  console.log('Downloading url: ', downloadUrl)
   const fileName = tmp.tmpNameSync()
   const file = fs.createWriteStream(fileName)
 
@@ -65,7 +64,6 @@ export const downloadFile = async (downloadUrl) => {
     })
       .pipe(file)
       .on('finish', () => {
-        // console.log(`Downloaded file from ${downloadUrl} to ${fileName}`);
         resolve(fileName)
       })
       .on('error', (error) => {
