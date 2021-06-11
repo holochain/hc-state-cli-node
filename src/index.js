@@ -107,7 +107,7 @@ export async function getArgs () {
     .description('install provided happ bundle with given id and details: calls InstallAppBundle(installed_app_id, agent_key, source, membrane_proofs?, uid?) -> { installed_app_id, cell_data: [ { cell_id, cell_nick } ], status: { inactive: { reason: [Object] } } }')
     .action(async (InstalledAppId, AgentHash, AppBundleSource, { membraneProof, cellNick, uid }) => {
       let membraneProofs
-      // throw error if one, but now both, of the membraneProof and CellNick are present - both are needed to form the membrane_proofs object
+      // throw error if one, but not both, of the membraneProof and CellNick are present - both are needed to form the membrane_proofs object
       if (!membraneProof ^ !cellNick) {
         throw new Error('When installing a happ with membrane proof, both the --membraneProof and --cellNick options are required.')
       } else if (membraneProof) {
