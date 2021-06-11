@@ -1,6 +1,6 @@
 {
   "name": "hc-state",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CLI tool for querying holochain over admin port",
   "main": "./dist/main.js",
   "scripts": {
@@ -15,7 +15,11 @@
   "license": "MIT",
   "dependencies": {
     "@holochain/conductor-api": "0.0.4",
-    "commander": "^6.2.0"
+    "blakejs": "^1.1.0",
+    "commander": "^6.2.0",
+    "fs": "*",
+    "request": "^2.88.2",
+    "tmp": "^0.2.1"
   },
   "devDependencies": {
     "bufferutil": "^4.0.1",
