@@ -1,4 +1,4 @@
-import { getAdminWebsocket, getAppWebsocket, getHoloHash, listDnas, listCellIds, listActiveApps, dumpState, installAppBundle, activateApp, appInfo, zomeCall } from './utils'
+import { getAdminWebsocket, getAppWebsocket, downloadFile, getHoloHash, listDnas, listCellIds, listActiveApps, dumpState, installAppBundle, activateApp, appInfo, zomeCall } from './utils'
 import path from 'path'
 import { inspect } from 'util'
 const { version } = require('../package.json')
@@ -106,9 +106,14 @@ export async function getArgs () {
     .option('-u --uid <uid>', 'provide uid to happ')
     .description('install provided happ bundle with given id and details: calls InstallAppBundle(installed_app_id, agent_key, source, membrane_proofs?, uid?) -> { installed_app_id, cell_data: [ { cell_id, cell_nick } ], status: { inactive: { reason: [Object] } } }')
     .action(async (InstalledAppId, AgentHash, AppBundleSource, { membraneProof, cellNick, uid }) => {
+      let membraneProofs
       // throw error if one, but now both, of the membraneProof and CellNick are present - both are needed to form the membrane_proofs object
       if (!membraneProof ^ !cellNick) {
         throw new Error('When installing a happ with membrane proof, both the --membraneProof and --cellNick options are required.')
+      } else if (membraneProof) {
+        membraneProofs = {
+          [[cellNick]]: Buffer.from(membraneProof, 'base64')
+        }
       }
 
       let bundleSource
@@ -118,7 +123,8 @@ export async function getArgs () {
         if (path.extname(AppBundleSource) !== '.happ') {
           throw new Error('Invalid AppBundleSource URL.  Please ensure to provide the url address of your bundle\'s .happ file.')
         }
-        bundleSource = AppBundleSource
+        console.log('Downloading bundle URL...', AppBundleSource)
+        bundleSource = await downloadFile(AppBundleSource)
       } else {
         try {
           const isHappExt = path.extname(AppBundleSource) === '.happ'
@@ -126,23 +132,16 @@ export async function getArgs () {
         } catch (error) {
           throw new Error('Invalid AppBundleSource. The source must be either a file or url path to the .happ file.')
         }
-
-        console.log('__dirname', __dirname)
-
         // note: __dirname is configured to the 'dist' folder, not project root
         const bundlePath = path.join(__dirname, '../', AppBundleSource)
         bundleSource = bundlePath
-      }
-
-      const membraneProofs = {
-        [cellNick]: Buffer.from(membraneProof, 'base64')
       }
 
       const args = {
         installed_app_id: InstalledAppId,
         agent_key: getHoloHash('agent', AgentHash),
         path: bundleSource,
-        membrane_proofs: membraneProof ? membraneProofs : {},
+        membrane_proofs: membraneProofs || {},
         uid: uid || null
       }
 

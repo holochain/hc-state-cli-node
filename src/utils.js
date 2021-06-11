@@ -1,5 +1,8 @@
 import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api'
 import { inspect } from 'util'
+const fs = require('fs')
+const tmp = require('tmp')
+const request = require('request')
 const blake = require('blakejs')
 
 let adminWebsocket, appWebsocket
@@ -40,6 +43,35 @@ const stringifyBuffRec = (obj) => {
   }
 
   return obj
+}
+
+/**
+ * Downloads url and saves to tmp file
+ * @returns {filePath}
+ */
+export const downloadFile = async (downloadUrl) => {
+  console.log('Downloading url: ', downloadUrl)
+  const fileName = tmp.tmpNameSync()
+  const file = fs.createWriteStream(fileName)
+
+  // Clean up url
+  const urlObj = new URL(downloadUrl)
+  urlObj.protocol = 'https'
+  downloadUrl = urlObj.toString()
+
+  return new Promise((resolve, reject) => {
+    request({
+      uri: downloadUrl
+    })
+      .pipe(file)
+      .on('finish', () => {
+        // console.log(`Downloaded file from ${downloadUrl} to ${fileName}`);
+        resolve(fileName)
+      })
+      .on('error', (error) => {
+        reject(error)
+      })
+  })
 }
 
 const HOLO_HASH_AGENT_PREFIX = Buffer.from(new Uint8Array([0x84, 0x20, 0x24]).buffer)
