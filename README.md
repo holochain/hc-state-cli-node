@@ -1,18 +1,42 @@
 # hc-state CLI
 
-CLI tool for querying holochain over admin port
+CLI tool for querying holochain over admin port (default = 4444) or app port (default = 42233)
 ```
 usage:
     hc-state --command arg
 
     Commands:
-        listDnas|d                  list installed DNAs: calls ListDnas(void) -> [DnaHash: string]
-        listCellIds|c               list installed cells IDs: calls listCellIds(void) -> [CellId: CellIdBase64]
-        listActiveApps|a            list active app IDs: calls listActiveApps(void) -> [AppId: string]
-        stateDump|s <CellIdBase6>   dump chain state for app: calls dumpState(CellIdBase64 | Index) -> [stateDump: any]
-        appInfo|i <InstalledAppId>  print app info for app: calls appInfo(InstalledAppId) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64,
-                                    cell_nick: string}], active: boolean}
-        help [command]              display help for command
+        listDnas|d                                                                  list installed DNAs: calls ListDnas(void) -> [DnaHash: string]
+        listCellIds|c                                                               list installed cells IDs: calls listCellIds(void) -> [CellId: CellIdBase64]
+        listActiveApps|a                                                            list active app IDs: calls listActiveApps(void) -> [AppId: string]
+        stateDump|s <CellIdBase6>                                                   dump chain state for app: calls dumpState(CellIdBase64 | Index) -> [stateDump: any]
+        activateApp|o <InstalledAppId>                                              activate provided app bundle: calls activateApp(installed_app_id) -> void
+        installAppBundle|b [options] <InstalledAppId> <AgentHash> <AppBundleSource> install provided happ bundle with given id and details: 
+                                                                                        calls InstallAppBundle(
+                                                                                            installed_app_id,
+                                                                                            agent_key,
+                                                                                            source,
+                                                                                            membrane_proofs?,
+                                                                                            uid?) -> {
+                                                                                                installed_app_id,
+                                                                                                cell_data: [ { cell_id, cell_nick } ],
+                                                                                                status: { inactive: { reason: [Object] } } 
+                                                                                            }
+        appInfo|i <InstalledAppId>                                                   print app info for app: 
+                                                                                        calls appInfo(installed_app_id) -> {
+                                                                                            installed_app_id: string,
+                                                                                            cell_data: [{cell_id: CellIdBase64, cell_nick: string}],
+                                                                                            active: boolean 
+                                                                                        }
+        zomeCall|z <DnaHash> <AgentHash> <ZomeName> <ZomeFunction> <Payload>         call zome function for cell: 
+                                                                                        calls callZome(
+                                                                                            cell_id,
+                                                                                            zome_name,
+                                                                                            fn_name,
+                                                                                            payload,
+                                                                                            provenence) -> ZomeCallResult: any
+        help [command]                                                               display help for command
+
 
     
     Options:
@@ -35,8 +59,6 @@ usage:
             hc-state s 0 
             // arg is the numeric index of cell ID returned by ListCellIds
 ```
-
-It would be useful to have `appDetails(app_id)`, but currently holochain admin API does not expose this functionality
 
 #### Build
 ```sh
