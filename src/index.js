@@ -26,7 +26,7 @@ const call_app_port = async (async_fn, port, args) => {
   }
 }
 
-export async function getArgs () {
+export async function getArgs() {
   const program = new Command()
 
   program
@@ -169,7 +169,10 @@ export async function getArgs () {
     .action(async (installedAppId) => {
       const result = await call_app_port(appInfo, program.opts().appPort, installedAppId)
       console.log('AppInfo Details for App:')
-      console.log(result)
+      console.log(inspect(result))
+      if (result.status.paused) {
+        console.log('Reason cell is paused : ', inspect(result.status.paused.reason))
+      }
     })
 
   program
@@ -178,7 +181,7 @@ export async function getArgs () {
     .description('call zome function for cell: calls callZome(cell_id, zome_name, fn_name, payload, provenence) -> ZomeCallResult: any')
     .action(async (DnaHash, AgentHash, ZomeName, ZomeFunction, Payload) => {
       let payload = null
-      function toJSONString (input) {
+      function toJSONString(input) {
         const keyMatcher = '([^",{}\\s]+?)'
         const valMatcher = '(?<=: )(.*?)(?=,|}| })'
         const matcher = new RegExp(`${keyMatcher}\\s*:\\s*${valMatcher}`, 'g')
