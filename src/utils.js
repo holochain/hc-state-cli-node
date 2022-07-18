@@ -1,4 +1,4 @@
-import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api'
+import { AdminWebsocket, AppWebsocket } from '@holochain/client'
 import { inspect } from 'util'
 const fs = require('fs')
 const tmp = require('tmp')
