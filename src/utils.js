@@ -174,13 +174,27 @@ export const listCellIds = async (adminWebsocket) => {
 }
 
 /**
- * Lists array of all active apps
+ * Lists array of all installed apps
  * @returns {Array}
  */
-export const listActiveApps = async (adminWebsocket) => {
+export const listApps = async (adminWebsocket) => {
   let result
   try {
-    result = await adminWebsocket.listActiveApps()
+    result = await adminWebsocket.listApps({status_filter: null})
+  } catch (error) {
+    throw new Error(`${JSON.stringify(error)}`)
+  }
+  return result
+}
+
+/**
+ * Lists array of all enabled apps
+ * @returns {Array}
+ */
+ export const listEnabledApps = async (adminWebsocket) => {
+  let result
+  try {
+    result = await adminWebsocket.listApps({status_filter: "enabled"})
   } catch (error) {
     throw new Error(`${JSON.stringify(error)}`)
   }

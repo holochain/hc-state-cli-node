@@ -1,4 +1,4 @@
-import { getAdminWebsocket, getAppWebsocket, downloadFile, getHoloHash, listDnas, listCellIds, listActiveApps, dumpState, installAppBundle, activateApp, appInfo, zomeCall } from './utils'
+import { getAdminWebsocket, getAppWebsocket, downloadFile, getHoloHash, listDnas, listCellIds, listApps, listEnabledApps, dumpState, installAppBundle, activateApp, appInfo, zomeCall } from './utils'
 import path from 'path'
 import { inspect } from 'util'
 const { version } = require('../package.json')
@@ -38,11 +38,11 @@ export async function getArgs () {
         DnaHashBase64: string, // base64 representation of Buffer length 39
         AgentPubKeyBase64: string // base64 representation of Buffer length 39
       ]
-    
+
   example
-    hc-state s "['hC0kqcfqvJ8krBR0bNnPsmLtFiEiMOHM0fX+U8FW+ROc7P10tUdc','hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac'] 
+    hc-state s "['hC0kqcfqvJ8krBR0bNnPsmLtFiEiMOHM0fX+U8FW+ROc7P10tUdc','hCAkcIRv7RZNVg8FWc6/oJZo04dZTXm7JP6tfMk3RptPY02cBQac']
     // arg is the CellIdBase64 as a continuous string (should not contain spaces)
-    or 
+    or
     hc-state s 0
     // arg is the numeric index of cell ID returned by ListCellIds
   `)
@@ -70,12 +70,22 @@ export async function getArgs () {
     })
 
   program
-    .command('listActiveApps')
+    .command('listApps')
     .alias('a')
-    .description('list active app IDs: calls listActiveApps(void) -> [AppId: string]')
+    .description('list all active apps: calls listApps({status_filter: null}) -> [AppId: any]')
     .action(async () => {
-      const result = await call_admin_port(listActiveApps, program.opts().adminPort)
-      console.log('Active App IDs:')
+      const result = await call_admin_port(listApps, program.opts().adminPort)
+      console.log('Installed Apps:')
+      console.log(result)
+    })
+
+  program
+    .command('listEnabledApps')
+    .alias('e')
+    .description('list enabled apps: calls listApps({status_filter: "enabled"}) -> [AppId: any]')
+    .action(async () => {
+      const result = await call_admin_port(listApps, program.opts().adminPort)
+      console.log('Enabled Apps:')
       console.log(result)
     })
 
