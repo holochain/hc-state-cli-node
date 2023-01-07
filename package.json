@@ -1,6 +1,6 @@
 {
   "name": "hc-state",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "CLI tool for querying holochain over admin port",
   "main": "./dist/main.js",
   "scripts": {
@@ -11,10 +11,14 @@
     "type": "git",
     "url": "git+https://github.com/holochain/hc-state-cli-node.git"
   },
-  "author": "peeech",
+  "authors": [
+    "peeech@holo.host",
+    "lisa.jetton@holo.host",
+    "joelulahanna@gmail.com"
+  ],
   "license": "MIT",
   "dependencies": {
-    "@holochain/client": "0.9.3",
+    "@holochain/client": "0.11.9",
     "blakejs": "^1.1.0",
     "commander": "^6.2.0",
     "fs": "*",
