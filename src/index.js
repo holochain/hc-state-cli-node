@@ -116,7 +116,7 @@ export async function getArgs() {
 		.action(async () => {
 			const result = await call_admin_port(listApps, program.opts().adminPort)
 			console.log('Installed Apps:')
-			console.log(result)
+			console.log(inspect(result, { depth: null }))
 		})
 
 	program
