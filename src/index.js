@@ -89,7 +89,7 @@ export async function getArgs() {
 		if (program.opts().verbose) {
 			console.log(inspect(result, { depth: null }))
 		} else {
-			logResult(result)
+			console.log(result)
 		}
 	}
 
