@@ -79,6 +79,19 @@ export async function getArgs() {
 			'assigns admin port for outbond admin-interface calls',
 			4444
 		)
+		.option(
+			'-v, --verbose',
+			"prints full tree of the result using util.inspect",
+			false
+		)
+
+	const logResult = result => {
+		if (opts.verbose) {
+			console.log(inspect(result, { depth: null }))
+		} else {
+			logResult(result)
+		}
+	}
 
 	program
 		.command('listDnas')
@@ -89,7 +102,7 @@ export async function getArgs() {
 		.action(async () => {
 			const result = await call_admin_port(listDnas, program.opts().adminPort)
 			console.log('Installed DNAs:')
-			console.log(result)
+			logResult(result)
 		})
 
 	program
@@ -104,7 +117,7 @@ export async function getArgs() {
 				program.opts().adminPort
 			)
 			console.log('Installed CellIds:')
-			console.log(result)
+			logResult(result)
 		})
 
 	program
@@ -116,7 +129,7 @@ export async function getArgs() {
 		.action(async () => {
 			const result = await call_admin_port(listApps, program.opts().adminPort)
 			console.log('Installed Apps:')
-			console.log(inspect(result, { depth: null }))
+			logResult(result)
 		})
 
 	program
@@ -128,7 +141,7 @@ export async function getArgs() {
 		.action(async () => {
 			const result = await call_admin_port(listApps, program.opts().adminPort)
 			console.log('Enabled Apps:')
-			console.log(result)
+			logResult(result)
 		})
 
 	program
@@ -153,7 +166,7 @@ export async function getArgs() {
 				CellIdBase64
 			)
 			console.log('State Dump for App:')
-			console.log(result)
+			logResult(result)
 		})
 
 	program
@@ -238,7 +251,7 @@ export async function getArgs() {
 					args
 				)
 				console.log('Installed App Bundle:')
-				console.log(result)
+				logResult(result)
 			}
 		)
 
@@ -335,7 +348,7 @@ export async function getArgs() {
 
 			const result = await call_app_port(zomeCall, program.opts().appPort, args)
 			console.log('\nZome Call Result :')
-			console.log(result)
+			logResult(result)
 		})
 
 	await program.parseAsync(process.argv)
