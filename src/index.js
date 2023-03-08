@@ -86,7 +86,7 @@ export async function getArgs() {
 		)
 
 	const logResult = result => {
-		if (opts.verbose) {
+		if (program.opts().verbose) {
 			console.log(inspect(result, { depth: null }))
 		} else {
 			logResult(result)
