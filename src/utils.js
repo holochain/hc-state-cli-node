@@ -131,10 +131,7 @@ export const getAdminWebsocket = async (adminPort) => {
 	console.log("adminWebsocket : ", adminWebsocket)
 	if (adminWebsocket) return adminWebsocket
 
-	console.log("adminPort : ", adminPort)
-	console.log("ws://localhost:${adminPort} : ", `ws://localhost:${adminPort}`)
-
-	adminWebsocket = await AdminWebsocket.connect(`ws://127.0.0.1:${adminPort}`)
+	adminWebsocket = await AdminWebsocket.connect(`ws://localhost:${adminPort}`)
 	console.log(`Successfully connected to admin interface on port ${adminPort}`)
 	return adminWebsocket
 }
@@ -152,7 +149,7 @@ export const isAppWebsocketOpen = async (appPort) => !!appWebsocket;
 export const getAppWebsocket = async (appPort) => {
 	if (appWebsocket) return appWebsocket
 
-	appWebsocket = await AppWebsocket.connect(`ws://127.0.0.1:${appPort}`)
+	appWebsocket = await AppWebsocket.connect(`ws://localhost:${appPort}`)
 	console.log(`Successfully connected to app interface on port ${appPort}`)
 	return appWebsocket
 }
