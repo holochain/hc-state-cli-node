@@ -45,6 +45,7 @@ usage:
         -p, --app-port <port>       assigns app port for outbound app-interface calls (default: 42233)
         -m, --admin-port <port>     assigns admin port for outbond admin-interface calls (default: 4444)
         -h, --help                  display help for command
+        -v, --verbose               prints full tree of the result using util.inspect. Useful if you're seeing [object] or [array] in your results and want to see the contents
 
         where
             CellIdBase64 =
