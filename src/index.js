@@ -1,4 +1,5 @@
 import {
+	isAppWebsocketOpen,
 	getAdminWebsocket,
 	getAppWebsocket,
 	downloadFile,
@@ -7,8 +8,8 @@ import {
 	listCellIds,
 	listApps,
 	dumpState,
-	installAppBundle,
-	activateApp,
+	installApp,
+	enableApp,
 	appInfo,
 	zomeCall,
 } from './utils'
@@ -27,6 +28,28 @@ const call_admin_port = async (async_fn, port, args) => {
 		)
 		const adminWebsocket = await getAdminWebsocket(port)
 		return await async_fn(adminWebsocket, args)
+	} catch (error) {
+		throw new Error(error)
+	}
+}
+
+const attach_app_port = async (admin_port, app_port, cell_id) => {
+	try {
+		console.log(
+			'Attaching App-Interface on port (%s)',
+			app_port,
+		)
+
+		const adminWebsocket = await getAdminWebsocket(admin_port)
+
+		if (cell_id) {
+			await adminWebsocket.authorizeSigningCredentials(cell_id)
+		}
+		
+		if (!isAppWebsocketOpen()) {
+			await adminWebsocket.attachAppInterface({ port: program.opts().appPort});
+		}
+
 	} catch (error) {
 		throw new Error(error)
 	}
@@ -170,36 +193,36 @@ export async function getArgs() {
 		})
 
 	program
-		.command('installAppBundle <InstalledAppId> <AgentHash> <AppBundleSource>')
+		.command('installApp <InstalledAppId> <AgentHash> <AppBundleSource>')
 		.alias('b')
 		.option(
 			'-e --membraneProof <membraneProof>',
-			'provide membrane proof for app bundle install and runtime validation - should be paired with --cellNick'
+			'provide membrane proof for app bundle install and runtime validation - should be paired with --roleName'
 		)
 		.option(
-			'-n --cellNick <cellNick>',
+			'-n --roleName <roleName>',
 			'provide cell nick - should be paired with --membraneProof'
 		)
-		.option('-u --uid <uid>', 'provide uid to happ')
+		.option('-u --network_seed <network_seed>', 'provide network_seed to happ')
 		.description(
-			'install provided happ bundle with given id and details: calls InstallAppBundle(installed_app_id, agent_key, source, membrane_proofs?, uid?) -> { installed_app_id, cell_data: [ { cell_id, cell_nick } ], status: { inactive: { reason: [Object] } } }'
+			'install provided happ bundle with given id and details: calls installApp(installed_app_id, agent_key, source, membrane_proofs?, network_seed?) -> { installed_app_id, cell_data: [ { cell_id, cell_nick } ], status: { inactive: { reason: [Object] } } }'
 		)
 		.action(
 			async (
 				InstalledAppId,
 				AgentHash,
 				AppBundleSource,
-				{ membraneProof, cellNick, uid }
+				{ membraneProof, roleName, network_seed }
 			) => {
 				let membraneProofs
-				// throw error if one, but not both, of the membraneProof and CellNick are present - both are needed to form the membrane_proofs object
-				if (!membraneProof ^ !cellNick) {
+				// throw error if one, but not both, of the membraneProof and roleName are present - both are needed to form the membrane_proofs object
+				if (!membraneProof ^ !roleName) {
 					throw new Error(
-						'When installing a happ with membrane proof, both the --membraneProof and --cellNick options are required.'
+						'When installing a happ with membrane proof, both the --membraneProof and --roleName options are required.'
 					)
 				} else if (membraneProof) {
 					membraneProofs = {
-						[[cellNick]]: Buffer.from(membraneProof, 'base64'),
+						[[roleName]]: Buffer.from(membraneProof, 'base64'),
 					}
 				}
 
@@ -233,11 +256,11 @@ export async function getArgs() {
 				}
 
 				const args = {
-					installed_app_id: InstalledAppId,
 					agent_key: getHoloHash('agent', AgentHash),
-					path: bundleSource,
+					installed_app_id: InstalledAppId,
 					membrane_proofs: membraneProofs || {},
-					uid: uid || null,
+					network_seed: network_seed || null,
+					path: bundleSource,
 				}
 
 				console.log(
@@ -246,7 +269,7 @@ export async function getArgs() {
 				)
 
 				const result = await call_admin_port(
-					installAppBundle,
+					installApp,
 					program.opts().adminPort,
 					args
 				)
@@ -256,15 +279,15 @@ export async function getArgs() {
 		)
 
 	program
-		.command('activateApp <InstalledAppId>')
+		.command('enableApp <InstalledAppId>')
 		.alias('o')
 		.description(
-			'activate provided   app bundle: calls activateApp(installed_app_id) -> void'
+			'activate provided   app bundle: calls enableApp(installed_app_id) -> void'
 		)
 		.action(async (installedAppId) => {
 			// we don't display the returned  for this call as it returns void
 			await call_admin_port(
-				activateApp,
+				enableApp,
 				program.opts().adminPort,
 				installedAppId
 			)
@@ -278,6 +301,7 @@ export async function getArgs() {
 			'print app info for app: calls appInfo(installed_app_id) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean }'
 		)
 		.action(async (installedAppId) => {
+			await attach_app_port(program.opts().adminPort, program.opts().appPort)
 			const result = await call_app_port(
 				appInfo,
 				program.opts().appPort,
@@ -346,8 +370,11 @@ export async function getArgs() {
 				inspect(args)
 			)
 
+			await attach_app_port(program.opts().adminPort, program.opts().appPort, args.cell_id)
+			
 			const result = await call_app_port(zomeCall, program.opts().appPort, args)
 			console.log('\nZome Call Result :')
+			
 			logResult(result)
 		})
 

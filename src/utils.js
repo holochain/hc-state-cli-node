@@ -1,4 +1,4 @@
-import { AdminWebsocket, AppWebsocket } from '@holochain/client'
+import { AdminWebsocket, AppWebsocket } from "@holochain/client";
 import { inspect } from 'util'
 const fs = require('fs')
 const tmp = require('tmp')
@@ -128,12 +128,22 @@ export const getHoloHash = (type, hash) => {
  * @returns {AdminWebsocket}
  */
 export const getAdminWebsocket = async (adminPort) => {
+	console.log("adminWebsocket : ", adminWebsocket)
 	if (adminWebsocket) return adminWebsocket
 
-	adminWebsocket = await AdminWebsocket.connect(`ws://localhost:${adminPort}`)
+	console.log("adminPort : ", adminPort)
+	console.log("ws://localhost:${adminPort} : ", `ws://localhost:${adminPort}`)
+
+	adminWebsocket = await AdminWebsocket.connect(`ws://127.0.0.1:${adminPort}`)
 	console.log(`Successfully connected to admin interface on port ${adminPort}`)
 	return adminWebsocket
 }
+
+/**
+ * Reports whether AppWs exists currrently
+ * @returns {Boolean}
+ */
+export const isAppWebsocketOpen = async (appPort) => !!appWebsocket;
 
 /**
  * Creates and returns websocket connection to app interface of Holochain
@@ -142,7 +152,7 @@ export const getAdminWebsocket = async (adminPort) => {
 export const getAppWebsocket = async (appPort) => {
 	if (appWebsocket) return appWebsocket
 
-	appWebsocket = await AppWebsocket.connect(`ws://localhost:${appPort}`)
+	appWebsocket = await AppWebsocket.connect(`ws://127.0.0.1:${appPort}`)
 	console.log(`Successfully connected to app interface on port ${appPort}`)
 	return appWebsocket
 }
@@ -267,15 +277,15 @@ export const dumpState = async (adminWebsocket, cellIdArg) => {
 }
 
 /**
- * Call installAppBundle for app bundle
- * @param {obj} installAppBundleArgs
+ * Call installApp for app bundle
+ * @param {obj} installAppArgs
  * @returns {obj}
  */
-export const installAppBundle = async (adminWebsocket, args) => {
-	if (!args) throw new Error('No args provided for installAppBundle.')
+export const installApp = async (adminWebsocket, args) => {
+	if (!args) throw new Error('No args provided for installApp.')
 	let result
 	try {
-		result = await adminWebsocket.installAppBundle(args)
+		result = await adminWebsocket.installApp(args)
 	} catch (error) {
 		return error
 	}
@@ -283,20 +293,20 @@ export const installAppBundle = async (adminWebsocket, args) => {
 }
 
 /**
- * Shows activateApp for given app id
+ * Call enableApp for given app id
  * @param {string} installedAppId
  * @returns {void}
  */
-export const activateApp = async (adminWebsocket, installedAppId) => {
+export const enableApp = async (adminWebsocket, installedAppId) => {
 	if (!installedAppId)
-		throw new Error('No installed_app_id passed to activateApp.')
+		throw new Error('No installed_app_id passed to enableApp.')
 	let result
 	try {
-		result = await adminWebsocket.activateApp({
+		result = await adminWebsocket.enableApp({
 			installed_app_id: installedAppId,
 		})
 	} catch (error) {
-		console.error('Error when calling AppInfo: ', error)
+		console.error('Error when calling enableApp: ', error)
 	}
 	return result
 }
