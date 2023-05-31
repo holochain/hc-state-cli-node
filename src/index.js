@@ -1,5 +1,4 @@
 import {
-	isAppWebsocketOpen,
 	getAdminWebsocket,
 	getAppWebsocket,
 	downloadFile,
@@ -19,12 +18,11 @@ const { version } = require('../package.json')
 const { Command } = require('commander')
 
 const call_admin_port = async (async_fn, port, args) => {
-	const argsLog = args ? args.toString() : 'none'
 	try {
 		console.log(
 			'Invoking call to Admin-Interface on port (%s) with args (%s)',
 			port,
-			argsLog
+			args ? inspect(args) : '{}'
 		)
 		const adminWebsocket = await getAdminWebsocket(port)
 		return await async_fn(adminWebsocket, args)
@@ -33,40 +31,27 @@ const call_admin_port = async (async_fn, port, args) => {
 	}
 }
 
-const attach_app_port = async (admin_port, app_port, cell_id) => {
+const authorize_signator = async (admin_port, cell_id) => {
 	try {
 		const adminWebsocket = await getAdminWebsocket(admin_port)
-
 		if (cell_id) {
 			console.log(
-				'Authorizing signing credentials (%s)',
+				'Authorizing signing credentials for cell_id (%s)',
 				cell_id,
 			)
 			await adminWebsocket.authorizeSigningCredentials(cell_id)
-		}
-		
-		if (!isAppWebsocketOpen()) {
-			console.log(
-				'Attaching App-Interface on port (%s)',
-				app_port,
-			)
-			await adminWebsocket.attachAppInterface({ port: appPort });
-		}
-
-		console.log('adminWebsocket (%s)', adminWebsocket);
-
+		}		
 	} catch (error) {
-		throw new Error(error)
+		throw new Error(inspect(error))
 	}
 }
 
 const call_app_port = async (async_fn, port, args) => {
-	const argsLog = args ? args.toString() : 'none'
 	try {
 		console.log(
-			'Invoking call to App-Interface on port (%s) with args (%s) ',
+			'Invoking call to App-Interface on port (%s) with args (%s)',
 			port,
-			argsLog
+			args ? inspect(args) : '{}'
 		)
 		const appWebsocket = await getAppWebsocket(port)
 		return await async_fn(appWebsocket, args)
@@ -296,7 +281,7 @@ export async function getArgs() {
 				program.opts().adminPort,
 				installedAppId
 			)
-			console.log('Activated App with ID  :  %s ', installedAppId)
+			console.log('Enabled App with ID  :  %s ', installedAppId)
 		})
 
 	program
@@ -306,7 +291,6 @@ export async function getArgs() {
 			'print app info for app: calls appInfo(installed_app_id) -> { installed_app_id: string, cell_data: [{cell_id: CellIdBase64, cell_nick: string}], active: boolean }'
 		)
 		.action(async (installedAppId) => {
-			await attach_app_port(program.opts().adminPort, program.opts().appPort)
 			const result = await call_app_port(
 				appInfo,
 				program.opts().appPort,
@@ -369,13 +353,12 @@ export async function getArgs() {
 			}
 
 			console.log(
-				'\nCalling %s/%s with args %s',
+				'\nCalling %s/%s',
 				ZomeName,
 				ZomeFunction,
-				inspect(args)
 			)
 
-			await attach_app_port(program.opts().adminPort, program.opts().appPort, args.cell_id)
+			await authorize_signator(program.opts().adminPort, args.cell_id)
 			
 			const result = await call_app_port(zomeCall, program.opts().appPort, args)
 			console.log('\nZome Call Result :')
