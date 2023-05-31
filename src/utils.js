@@ -128,9 +128,7 @@ export const getHoloHash = (type, hash) => {
  * @returns {AdminWebsocket}
  */
 export const getAdminWebsocket = async (adminPort) => {
-	console.log("adminWebsocket : ", adminWebsocket)
 	if (adminWebsocket) return adminWebsocket
-
 	adminWebsocket = await AdminWebsocket.connect(`ws://localhost:${adminPort}`)
 	console.log(`Successfully connected to admin interface on port ${adminPort}`)
 	return adminWebsocket
@@ -140,7 +138,7 @@ export const getAdminWebsocket = async (adminPort) => {
  * Reports whether AppWs exists currrently
  * @returns {Boolean}
  */
-export const isAppWebsocketOpen = async (appPort) => !!appWebsocket;
+export const isAppWebsocketOpen = async () => !!appWebsocket;
 
 /**
  * Creates and returns websocket connection to app interface of Holochain

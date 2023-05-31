@@ -35,20 +35,25 @@ const call_admin_port = async (async_fn, port, args) => {
 
 const attach_app_port = async (admin_port, app_port, cell_id) => {
 	try {
-		console.log(
-			'Attaching App-Interface on port (%s)',
-			app_port,
-		)
-
 		const adminWebsocket = await getAdminWebsocket(admin_port)
 
 		if (cell_id) {
+			console.log(
+				'Authorizing signing credentials (%s)',
+				cell_id,
+			)
 			await adminWebsocket.authorizeSigningCredentials(cell_id)
 		}
 		
 		if (!isAppWebsocketOpen()) {
-			await adminWebsocket.attachAppInterface({ port: program.opts().appPort});
+			console.log(
+				'Attaching App-Interface on port (%s)',
+				app_port,
+			)
+			await adminWebsocket.attachAppInterface({ port: appPort });
 		}
+
+		console.log('adminWebsocket (%s)', adminWebsocket);
 
 	} catch (error) {
 		throw new Error(error)
