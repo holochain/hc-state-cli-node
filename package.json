@@ -22,6 +22,7 @@
     "blakejs": "^1.1.0",
     "commander": "^6.2.0",
     "fs": "*",
+    "node-polyfill-webpack-plugin": "^2.0.1",
     "request": "^2.88.2",
     "tmp": "^0.2.1"
   },
