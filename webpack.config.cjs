@@ -17,8 +17,6 @@ module.exports = {
   mode: 'development',
   plugins: [
     new webpack.BannerPlugin({ banner: '#!/usr/bin/env node', raw: true }),
-    new NodePolyfillPlugin({
-			includeAliases: ['crypto']
-		})
+    new NodePolyfillPlugin()
   ]
 }

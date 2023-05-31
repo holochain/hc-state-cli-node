@@ -21,6 +21,7 @@
     "@holochain/client": "^0.14.1",
     "blakejs": "^1.1.0",
     "commander": "^6.2.0",
+    "crypto": "^1.0.1",
     "fs": "*",
     "node-polyfill-webpack-plugin": "^2.0.1",
     "request": "^2.88.2",
