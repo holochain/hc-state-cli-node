@@ -25,7 +25,8 @@
     "fs": "*",
     "node-polyfill-webpack-plugin": "^2.0.1",
     "request": "^2.88.2",
-    "tmp": "^0.2.1"
+    "tmp": "^0.2.1",
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "bufferutil": "^4.0.1",
