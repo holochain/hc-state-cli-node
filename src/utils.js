@@ -1,4 +1,4 @@
-import { AdminWebsocket, AppWebsocket } from '@holochain/client'
+import { AdminWebsocket, AppWebsocket, CellType } from "@holochain/client";
 import { inspect } from 'util'
 const fs = require('fs')
 const tmp = require('tmp')
@@ -129,8 +129,7 @@ export const getHoloHash = (type, hash) => {
  */
 export const getAdminWebsocket = async (adminPort) => {
 	if (adminWebsocket) return adminWebsocket
-
-	adminWebsocket = await AdminWebsocket.connect(`ws://localhost:${adminPort}`)
+	adminWebsocket = await AdminWebsocket.connect(`ws://127.0.0.1:${adminPort}`)
 	console.log(`Successfully connected to admin interface on port ${adminPort}`)
 	return adminWebsocket
 }
@@ -138,11 +137,11 @@ export const getAdminWebsocket = async (adminPort) => {
 /**
  * Creates and returns websocket connection to app interface of Holochain
  * @returns {AppWebsocket}
- */
+*/
 export const getAppWebsocket = async (appPort) => {
 	if (appWebsocket) return appWebsocket
 
-	appWebsocket = await AppWebsocket.connect(`ws://localhost:${appPort}`)
+	appWebsocket = await AppWebsocket.connect(`ws://127.0.0.1:${appPort}`)
 	console.log(`Successfully connected to app interface on port ${appPort}`)
 	return appWebsocket
 }
@@ -267,15 +266,15 @@ export const dumpState = async (adminWebsocket, cellIdArg) => {
 }
 
 /**
- * Call installAppBundle for app bundle
- * @param {obj} installAppBundleArgs
+ * Call installApp for app bundle
+ * @param {obj} installAppArgs
  * @returns {obj}
  */
-export const installAppBundle = async (adminWebsocket, args) => {
-	if (!args) throw new Error('No args provided for installAppBundle.')
+export const installApp = async (adminWebsocket, args) => {
+	if (!args) throw new Error('No args provided for installApp.')
 	let result
 	try {
-		result = await adminWebsocket.installAppBundle(args)
+		result = await adminWebsocket.installApp(args)
 	} catch (error) {
 		return error
 	}
@@ -283,20 +282,20 @@ export const installAppBundle = async (adminWebsocket, args) => {
 }
 
 /**
- * Shows activateApp for given app id
+ * Call enableApp for given app id
  * @param {string} installedAppId
  * @returns {void}
  */
-export const activateApp = async (adminWebsocket, installedAppId) => {
+export const enableApp = async (adminWebsocket, installedAppId) => {
 	if (!installedAppId)
-		throw new Error('No installed_app_id passed to activateApp.')
+		throw new Error('No installed_app_id passed to enableApp.')
 	let result
 	try {
-		result = await adminWebsocket.activateApp({
+		result = await adminWebsocket.enableApp({
 			installed_app_id: installedAppId,
 		})
 	} catch (error) {
-		console.error('Error when calling AppInfo: ', error)
+		console.error('Error when calling enableApp: ', error)
 	}
 	return result
 }
@@ -315,15 +314,50 @@ export const appInfo = async (appWebsocket, installedAppId) => {
 		console.error('Error when calling AppInfo: ', error)
 	}
 
-	if (!result.cell_data)
-		return `No cell data found for installed_app_id : ${installedAppId}`
+	if (!result.cell_info)
+		return `No cell info found for installed_app_id : ${installedAppId}`
+		
+	const cell_info_map = Object.entries(result.cell_info).reduce((cell_map, cell_entry) => {
+		let cell_entry_info = cell_entry[1].map((cell) => {
+			if (cell[CellType.Provisioned]) {
+				const cell_info = cell[CellType.Provisioned]
+				cell_info.cell_id = inspect(cell_info.cell_id.map((id) => id.toString('base64')))
+				cell_info.dna_modifiers = inspect(cell_info.dna_modifiers)
+				cell = {
+					[CellType.Provisioned]: inspect(cell_info)
+				}
+
+			} else if (cell[CellType.Cloned]) {
+				const cell_info = cell[CellType.Cloned]
+				cell_info.cell_id = inspect(cell_info.cell_id.map((id) => id.toString('base64')))
+				cell_info.original_dna_hash = inspect(cell_info.original_dna_hash.toString('base64'))
+				cell_info.dna_modifiers = inspect(cell_info.dna_modifiers)
+				cell = {
+					[CellType.Cloned]: inspect(cell_info)
+				}
+
+			} else if (cell[CellType.Stem]) {
+				const cell_info = cell[CellType.Stem]
+				cell_info.original_dna_hash = inspect(cell_info.original_dna_hash.toString('base64'))
+				cell_info.dna_modifiers = inspect(cell_info.dna_modifiers)
+				cell = {
+					[CellType.Stem]: inspect(cell_info)
+				}
+
+			} else {
+				throw new Error(`Found unrecognized cell type when reading app info: ${inspect(cell)}`)
+			}
+
+			return cell
+		});
+
+		cell_map[cell_entry[0]] = cell_entry_info
+		return cell_map
+	}, {})
 
 	return {
 		...result,
-		cell_data: result.cell_data.map((cell) => ({
-			...cell,
-			cell_id: inspect(cell.cell_id.map((id) => id.toString('base64'))),
-		})),
+		cell_info: inspect(cell_info_map),
 	}
 }
 

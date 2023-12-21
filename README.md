@@ -7,13 +7,14 @@ usage:
 
     Commands:
         listApps|a                                                                  list all installed apps: calls listApps({status_filter: null}) -> [AppInfo: any]
-        installAppBundle|b [options] <InstalledAppId> <AgentHash> <AppBundleSource> install provided happ bundle with given id and details:
-                                                                                        calls InstallAppBundle(
-                                                                                            installed_app_id,
-                                                                                            agent_key,
-                                                                                            source,
-                                                                                            membrane_proofs?,
-                                                                                            uid?) -> {
+        installApp|b [options] <InstalledAppId> <AgentHash> <AppBundleSource> install provided happ bundle with given id and details:
+                                                                                        calls installApp(
+                                                                                                agent_key,
+                                                                                                installed_app_id,
+                                                                                                membrane_proofs?,
+                                                                                                network_seed?
+                                                                                                path,
+                                                                                            ) -> {
                                                                                                 installed_app_id,
                                                                                                 cell_data: [ { cell_id, cell_nick } ],
                                                                                                 status: { inactive: { reason: [Object] } }
@@ -22,7 +23,7 @@ usage:
         listDnas|d                                                                  list installed DNAs: calls ListDnas(void) -> [DnaHash: string]
         listEnabledApps|e                                                           list enabled apps: calls listApps({status_filter: "enabled"}) -> [AppInfo: any]
         stateDump|s <CellIdBase6>                                                   dump chain state for app: calls dumpState(CellIdBase64 | Index) -> [stateDump: any]
-        activateApp|o <InstalledAppId>                                              activate provided app bundle: calls activateApp(installed_app_id) -> void
+        enableApp|o <InstalledAppId>                                              activate provided app bundle: calls enableApp(installed_app_id) -> void
         appInfo|i <InstalledAppId>                                                   print app info for app:
                                                                                         calls appInfo(installed_app_id) -> {
                                                                                             installed_app_id: string,
