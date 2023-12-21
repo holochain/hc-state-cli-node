@@ -6,6 +6,7 @@ import {
 	listDnas,
 	listCellIds,
 	listApps,
+	listEnabledApps,
 	dumpState,
 	installAppBundle,
 	activateApp,
@@ -139,7 +140,7 @@ export async function getArgs() {
 			'list enabled apps: calls listApps({status_filter: "enabled"}) -> [AppId: any]'
 		)
 		.action(async () => {
-			const result = await call_admin_port(listApps, program.opts().adminPort)
+			const result = await call_admin_port(listEnabledApps, program.opts().adminPort)
 			console.log('Enabled Apps:')
 			logResult(result)
 		})
