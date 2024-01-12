@@ -150,11 +150,11 @@ export async function getArgs() {
 		.command('listEnabledApps')
 		.alias('e')
 		.description(
-			'list enabled apps: calls listApps({status_filter: "enabled"}) -> [AppId: any]'
+			'list holochain enabled apps: calls listApps({status_filter: "enabled"}) -> [AppId: any]'
 		)
 		.action(async () => {
 			const result = await call_admin_port(listEnabledApps, program.opts().adminPort)
-			console.log('Enabled Apps:')
+			console.log('Holochain Enabled Apps:')
 			logResult(result)
 		})
 
@@ -273,7 +273,7 @@ export async function getArgs() {
 		.command('enableApp <InstalledAppId>')
 		.alias('o')
 		.description(
-			'activate provided   app bundle: calls enableApp(installed_app_id) -> void'
+			'activate provided app bundle: calls enableApp(installed_app_id) -> void'
 		)
 		.action(async (installedAppId) => {
 			// we don't display the returned  for this call as it returns void
