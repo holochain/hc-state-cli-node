@@ -20,12 +20,14 @@ const { Command } = require('commander')
 
 const call_admin_port = async (async_fn, port, args) => {
 	try {
+		let wsClientOptions = { origin: "hc-state-cli" };
 		console.log(
-			'Invoking call to Admin-Interface on port (%s) with args (%s)',
+			'Invoking call to Admin-Interface at port (%s), with options (%s) and with args (%s)',
 			port,
+			wsClientOptions,
 			args ? inspect(args) : '{}'
 		)
-		const adminWebsocket = await getAdminWebsocket(port)
+		const adminWebsocket = await getAdminWebsocket(port, wsClientOptions)
 		return await async_fn(adminWebsocket, args)
 	} catch (error) {
 		throw new Error(error)
@@ -285,6 +287,7 @@ export async function getArgs() {
 			console.log('Enabled App with ID  :  %s ', installedAppId)
 		})
 
+	// TODO
 	program
 		.command('appInfo <InstalledAppId>')
 		.alias('i')
@@ -307,6 +310,7 @@ export async function getArgs() {
 			}
 		})
 
+	// TODO
 	program
 		.command(
 			'zomeCall <DnaHash> <AgentHash> <ZomeName> <ZomeFunction> <Payload>'

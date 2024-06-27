@@ -125,12 +125,15 @@ export const getHoloHash = (type, hash) => {
 
 /**
  * Creates and returns websocket connection to admin interface of Holochain
- * @returns {AdminWebsocket}
+ 	* @param port - The WebSocket URL port.
+   	* @param wsClientOptions - Options for the WsClient.
+ 	* @returns {AdminWebsocket}
  */
-export const getAdminWebsocket = async (adminPort) => {
+export const getAdminWebsocket = async (port, wsClientOptions = {}) => {
 	if (adminWebsocket) return adminWebsocket
-	adminWebsocket = await AdminWebsocket.connect(`ws://127.0.0.1:${adminPort}`)
-	console.log(`Successfully connected to admin interface on port ${adminPort}`)
+	let url = new URL(`ws://127.0.0.1:${port}`); 
+	adminWebsocket = await AdminWebsocket.connect({ url, wsClientOptions })
+	console.log(`Successfully connected to admin interface on port ${port}`)	
 	return adminWebsocket
 }
 
@@ -138,8 +141,8 @@ export const getAdminWebsocket = async (adminPort) => {
  * Creates and returns websocket connection to app interface of Holochain
  * @returns {AppWebsocket}
 */
-export const getAppWebsocket = async (appPort) => {
-	if (appWebsocket) return appWebsocket
+export const getAppWebsocket = async (appPort, options = {}) => {
+	if (appWebsocket) return appWebsocket // && options
 
 	appWebsocket = await AppWebsocket.connect(`ws://127.0.0.1:${appPort}`)
 	console.log(`Successfully connected to app interface on port ${appPort}`)
@@ -198,7 +201,7 @@ export const listApps = async (adminWebsocket) => {
 export const listEnabledApps = async (adminWebsocket) => {
 	let result
 	try {
-		result = await adminWebsocket.listApps({ status_filter: 'enabled' })
+		result = await adminWebsocket.listApps({ status_filter: 'Enabled' })
 	} catch (error) {
 		throw new Error(`${JSON.stringify(error)}`)
 	}
