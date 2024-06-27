@@ -5,7 +5,13 @@
   "main": "./dist/main.js",
   "scripts": {
     "build": "webpack --config webpack.config.cjs",
-    "lint": "standardx --fix"
+    "lint": "standardx --fix",
+    "run:test": "hc s clean && concurrently \"AGENTS=1 BOOTSTRAP_PORT=11222 SIGNAL_PORT=11223 yarn hc:run\" \"yarn api:test\"; clear:all",
+    "api:test": "sh test/api-test.sh",
+    "hc:run": "concurrently \"hc run-local-services --bootstrap-port $BOOTSTRAP_PORT --signal-port $SIGNAL_PORT\" \"echo pass | RUST_LOG=debug hc sandbox -f 8888 generate --app-id my-test-app --num-sandboxes $AGENTS --root ./ --directories test-agent --run 0 ./test.happ network webrtc ws://127.0.0.1:\"$SIGNAL_PORT\"\"",
+    "clear:lair": "killall lair-keystore",
+    "clear:hc": "killall holochain",
+    "clear:all": "hc s clean; yarn clear:lair; yarn clear:hc"
   },
   "repository": {
     "type": "git",
@@ -18,7 +24,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@holochain/client": "0.18.0-dev.3",
+    "@holochain/client": "0.18.0-dev.4",
     "blakejs": "^1.1.0",
     "commander": "^6.2.0",
     "crypto": "^1.0.1",
@@ -33,6 +39,7 @@
     "standardx": "^7.0.0",
     "utf-8-validate": "^5.0.2",
     "webpack": "^5.4.0",
+    "concurrently": "^8.2.2",
     "webpack-cli": "^4.2.0"
   }
 }
