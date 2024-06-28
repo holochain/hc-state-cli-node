@@ -1,13 +1,15 @@
 # hc-state CLI
 
 CLI tool for querying holochain over admin port (default = 4444) or app port (default = 42233)
+
+### CLI:
 ```
 usage:
     hc-state --command arg
 
     Commands:
         listApps|a                                                                  list all installed apps: calls listApps({status_filter: null}) -> [AppInfo: any]
-        installApp|b [options] <InstalledAppId> <AgentHash> <AppBundleSource> install provided happ bundle with given id and details:
+        installApp|b [options] <InstalledAppId> <AgentHash> <AppBundleSource>       install provided happ bundle with given id and details:
                                                                                         calls installApp(
                                                                                                 agent_key,
                                                                                                 installed_app_id,
@@ -23,8 +25,8 @@ usage:
         listDnas|d                                                                  list installed DNAs: calls ListDnas(void) -> [DnaHash: string]
         listEnabledApps|e                                                           list enabled apps: calls listApps({status_filter: "enabled"}) -> [AppInfo: any]
         stateDump|s <CellIdBase6>                                                   dump chain state for app: calls dumpState(CellIdBase64 | Index) -> [stateDump: any]
-        enableApp|o <InstalledAppId>                                              activate provided app bundle: calls enableApp(installed_app_id) -> void
-        appInfo|i <InstalledAppId>                                                   print app info for app:
+        enableApp|o <InstalledAppId>                                                activate provided app bundle: calls enableApp(installed_app_id) -> void
+        appInfo|i <InstalledAppId>                                                  print app info for app:
                                                                                         calls appInfo(installed_app_id) -> {
                                                                                             installed_app_id: string,
                                                                                             cell_data: [{cell_id: CellIdBase64, cell_nick: string}],
@@ -63,12 +65,51 @@ usage:
             // arg is the numeric index of cell ID returned by ListCellIds
 ```
 
-#### Build
+### Build
 ```sh
 npm i
 npm run build
 ```
 will build `main.js` into `dist/`
+
+
+### To Run
+You will need to open 2 terminals when running the api locally.  One will dedicated to running the holochain environement, and the other for the cli calls themselves.
+> Please note that the happ file path *must* point to a file that ends in a `.happ` extention.
+
+Terminal 1
+```
+nix develop
+AGENTS=<num> BOOTSTRAP_PORT=<num> SIGNAL_PORT=<num> APP_BUNDLE_PATH=<path-to-file.happ> yarn hc:run
+```
+
+Terminal 2
+```
+eg:
+node dist/main.js a -m 8888
+```
+
+
+### To Test
+#### Locally:
+You will need to open 2 terminals when testing locally.  One will dedicated to running the holochain environement, and the other the tests.
+> Please note that the happ file path *must* point to a file that ends in a `.happ` extention.
+
+Terminal 1
+```
+nix develop
+AGENTS=<num> BOOTSTRAP_PORT=<num> SIGNAL_PORT=<num> APP_BUNDLE_PATH=<path-to-file.happ> yarn hc:run
+```
+
+Terminal 2
+```
+yarn api:test
+```
+
+#### CI:
+There is a separate script that CI uses located at `test/ci-testing.sh`.
+> This is meant for test automation and CI purposes. To run a local instance for testing see above.
+
 
 #### Prerequisites
 `node 12.x`

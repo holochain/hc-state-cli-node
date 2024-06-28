@@ -1,3 +1,12 @@
+# general repository resources
 node_modules/
 dist/
 bundles/
+
+# testing resources
+test/happs/*.happ
+test/test-agent/*
+
+# hc sandbox files
+.hc
+.hc_live_*
