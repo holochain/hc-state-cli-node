@@ -5,7 +5,17 @@
   "main": "./dist/main.js",
   "scripts": {
     "build": "webpack --config webpack.config.cjs",
-    "lint": "standardx --fix"
+    "lint": "standardx --fix",
+    "hc:run": "concurrently \"hc run-local-services --bootstrap-port $BOOTSTRAP_PORT --signal-port $SIGNAL_PORT\" \"echo pass | RUST_LOG=info hc sandbox --piped -f 8888 generate --app-id my-test-app --num-sandboxes $AGENTS --root ./test --directories test-agent --run 0 $APP_BUNDLE_PATH network webrtc ws://127.0.0.1:\"$SIGNAL_PORT\"\"",
+    "hc:run-w-setup": "yarn clear:all; AGENTS=1 BOOTSTRAP_PORT=11222 SIGNAL_PORT=11223 APP_BUNDLE_PATH='./test/happs/test.happ' yarn hc:run",
+    "api:test": "DEBUG_UI=1 mocha --timeout 0 test/index.js",
+    "clear:all": "hc s clean; yarn clear:agent; yarn clear:bootstrap; yarn clear:signals; yarn clear:adminWs; yarn clear:lair; yarn clear:hc",
+    "clear:agent": "rm -rf ./test/test-agent",
+    "clear:lair": "killall lair-keystore",
+    "clear:hc": "killall holochain",
+    "clear:adminWs": "kill -9 $(lsof -t -i:8888)",
+    "clear:bootstrap": "kill -9 $(lsof -t -i:11222)",
+    "clear:signals": "kill -9 $(lsof -t -i:11223)"
   },
   "repository": {
     "type": "git",
@@ -18,7 +28,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@holochain/client": "^0.14.1",
+    "@holochain/client": "0.18.0-dev.4",
     "blakejs": "^1.1.0",
     "commander": "^6.2.0",
     "crypto": "^1.0.1",
@@ -29,10 +39,13 @@
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^9.0.2",
     "bufferutil": "^4.0.1",
     "standardx": "^7.0.0",
     "utf-8-validate": "^5.0.2",
     "webpack": "^5.4.0",
+    "concurrently": "^8.2.2",
     "webpack-cli": "^4.2.0"
   }
 }
