@@ -187,18 +187,34 @@ export async function getArgs () {
 
   program
     .command('dumpNetworkMetrics')
-    .alias('n')
+    .alias('nd')
     .description(
-      'dump network state for app: calls dumpNetworkMetrics(DNAHashBase64) -> [networkDump: any]'
+      'dump network state for app: calls dumpNetworkMetrics() -> [NetworkMetricsDumped: any]'
     )
     .action(async () => {
       const result = await call_admin_port(
         dumpNetworkMetrics,
         program.opts().adminPort,
       )
-      console.log('Network State Dump for DNA:')
+      console.log('Network metricz Dump for DNA:')
       logResult(result)
     })
+
+  program
+  .command('dumpNetworkStats')
+  .alias('ns')
+  .description(
+    'dump network state for app: calls dumpNetworkStats() -> [DumpNetworkStats: any]'
+  )
+  .action(async () => {
+    const result = await call_admin_port(
+      dumpNetworkStats,
+      program.opts().adminPort,
+    )
+    console.log('Network State Dump for DNA:')
+    logResult(result)
+  })
+
 
   program
     .command('installApp <InstalledAppId> <AgentHash> <AppBundleSource>')
