@@ -12,6 +12,7 @@ import {
   enableApp,
   appInfo,
   dumpNetworkMetrics,
+  dumpNetworkStats,
   zomeCall
 } from './utils'
 import path from 'path'
