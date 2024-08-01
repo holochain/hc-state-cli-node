@@ -205,67 +205,6 @@ export const listEnabledApps = async (adminWebsocket) => {
 }
 
 /**
- * Dumps state of holochain for given cell id in a pretty format
- * @param {CellID | int} cellIdArg
- * @returns string
- */
-export const dumpState = async (adminWebsocket, cellIdArg) => {
-  console.log('cell Id Arg : ', cellIdArg)
-  if (!cellIdArg) throw new Error('No cell_id passed.')
-  let cellId
-
-  const index = parseInt(cellIdArg)
-  if (`${index}` === cellIdArg) {
-    // arg is a index so get cell ID list from conductor
-    const result = await adminWebsocket.listCellIds()
-    if (Array.isArray(result)) {
-      if (index >= result.length) {
-        return `CellId index (zero based) provided was ${index}, but there are only ${result.length} cell(s)`
-      }
-      cellId = result[index]
-    } else {
-      return `Expected array from listCellIds() got: ${result}`
-    }
-  } else {
-    // Convert cellIdArg into array format to satisfy dumpState arg type
-    cellId = cellIdArg.split(',')
-    if (Array.isArray(cellId)) {
-      cellId[0] = Buffer.from(cellId[0], 'base64')
-      cellId[1] = Buffer.from(cellId[1], 'base64')
-    } else {
-      throw new Error(
-        'Error parsing cell_id: cell_id should be an array [DnaHashBase64, AgentPubKeyBase64]'
-      )
-    }
-  }
-
-  console.log('CellId in Buffer format : ', cellId)
-  if (cellId.length !== 2) {
-    throw new Error(
-      'cell_id is in improper format. Make sure both the dna and agent hash are passed as a single, non-spaced array.'
-    )
-  } else if (cellId[0].length !== 39 || cellId[1].length !== 39) {
-    throw new Error(
-      'cell_id contains a hash of improper length. Make sure both the dna and agent hash are passed as a single, non-spaced array.'
-    )
-  }
-  let stateDump
-  try {
-    stateDump = await adminWebsocket.dumpState({
-      cell_id: cellId
-    })
-  } catch (error) {
-    throw new Error(`${JSON.stringify(error)}`)
-  }
-  // Replace all the buffers with byte64 representations
-  const result = stringifyBuffRec(stateDump)
-  return (
-    JSON.stringify(result, null, 4) +
-		`\n\nTotal Elements in Dump: ${stateDump.length}`
-  )
-}
-
-/**
  * Call installApp for app bundle
  * @param {obj} installAppArgs
  * @returns {obj}
@@ -366,6 +305,20 @@ export const zomeCall = async (appWebsocket, args) => {
   let result
   try {
     result = await appWebsocket.callZome(args)
+  } catch (error) {
+    return error
+  }
+  return result
+}
+
+/**
+ * Dumps network state of holochain
+ * @returns string
+ */
+export const dumpNetworkMetrics = async (adminWebsocket) => {
+  let result
+  try {
+    result = await adminWebsocket.listDnas()
   } catch (error) {
     return error
   }
