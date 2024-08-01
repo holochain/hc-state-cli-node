@@ -312,20 +312,6 @@ export const zomeCall = async (appWebsocket, args) => {
 }
 
 /**
- * Dumps network metrics of holochain
- * @returns string
- */
-export const dumpNetworkMetrics = async (adminWebsocket) => {
-  let result
-  try {
-    result = await adminWebsocket.dumpNetworkMetrics()
-  } catch (error) {
-    return error
-  }
-  return result
-}
-
-/**
  * Dumps network state of holochain
  * @returns string
  */

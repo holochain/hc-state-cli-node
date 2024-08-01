@@ -11,7 +11,6 @@ import {
   installApp,
   enableApp,
   appInfo,
-  dumpNetworkMetrics,
   dumpNetworkStats,
   zomeCall
 } from './utils'
@@ -183,21 +182,6 @@ export async function getArgs () {
         CellIdBase64
       )
       console.log('State Dump for App:')
-      logResult(result)
-    })
-
-  program
-    .command('dumpNetworkMetrics')
-    .alias('nd')
-    .description(
-      'dump network state for app: calls dumpNetworkMetrics() -> [NetworkMetricsDumped: any]'
-    )
-    .action(async () => {
-      const result = await call_admin_port(
-        dumpNetworkMetrics,
-        program.opts().adminPort,
-      )
-      console.log('Network metricz Dump for DNA:')
       logResult(result)
     })
 
