@@ -11,6 +11,7 @@ import {
   installApp,
   enableApp,
   appInfo,
+  dumpNetworkStats,
   zomeCall
 } from './utils'
 import path from 'path'
@@ -183,6 +184,22 @@ export async function getArgs () {
       console.log('State Dump for App:')
       logResult(result)
     })
+
+  program
+  .command('dumpNetworkStats')
+  .alias('ns')
+  .description(
+    'dump network state for app: calls dumpNetworkStats() -> [DumpNetworkStats: any]'
+  )
+  .action(async () => {
+    const result = await call_admin_port(
+      dumpNetworkStats,
+      program.opts().adminPort,
+    )
+    console.log('Network State Dump for DNA:')
+    logResult(result)
+  })
+
 
   program
     .command('installApp <InstalledAppId> <AgentHash> <AppBundleSource>')
